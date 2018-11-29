@@ -1,6 +1,7 @@
 
 #include "MeshMotion.h"
 #include "MeshRotation.h"
+#include "MeshTranslation.h"
 
 #include "stk_mesh/base/Field.hpp"
 
@@ -30,7 +31,11 @@ void MeshMotion::load(const YAML::Node& node)
 
         if (type == "rotation") {
             meshMotionVec_[i].reset(new MeshRotation(meta_, bulk_, motion_def));
-        } else {
+        }
+        else if (type == "translation") {
+          meshMotionVec_[i].reset(new MeshTranslation(meta_, bulk_, motion_def));
+        }
+        else {
             throw std::runtime_error("MeshMotion: Invalid mesh motion type: " + type);
         }
     }

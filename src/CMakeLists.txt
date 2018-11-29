@@ -32,15 +32,20 @@ set(CMAKE_CXX_COMPILER ${Trilinos_CXX_COMPILER})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Trilinos_CXX_COMPILER_FLAGS}")
 
 add_executable(stk2tioga
+
   TiogaBlock.cpp
   TiogaSTKIface.cpp
 
   MotionBase.cpp
-  MeshRotation.cpp
   MeshMotion.cpp
-  Timer.cpp
+  MeshRotation.cpp
+  MeshTranslation.cpp
 
-  stk2tioga.cpp)
+  stk2tioga.cpp
+  
+  Timer.cpp
+  )
+  
 target_link_libraries(stk2tioga
   ${NALU_LIBRARIES}
   ${Trilinos_LIBRARIES}

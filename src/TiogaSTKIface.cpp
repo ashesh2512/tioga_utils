@@ -48,6 +48,9 @@ TiogaSTKIface::load(const YAML::Node& node)
     blocks_[i].reset(
         new TiogaBlock(meta_, bulk_, oset_groups[i], coordsName_, i + 1));
   }
+
+  if (node["tioga_symmetry_direction"])
+    symmetryDir_ = node["tioga_symmetry_direction"].as<int>();
 }
 
 void TiogaSTKIface::setup()
@@ -67,6 +70,8 @@ void TiogaSTKIface::initialize()
   tg_->setCommunicator(bulk_.parallel(),
                        bulk_.parallel_rank(),
                        bulk_.parallel_size());
+
+  tg_->setSymmetry(symmetryDir_);
 
   auto timeMon = get_timer("TiogaSTKIface::initialize");
   for (auto& tb: blocks_) {

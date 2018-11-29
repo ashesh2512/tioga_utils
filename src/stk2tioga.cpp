@@ -127,7 +127,7 @@ void move_mesh(stk::mesh::MetaData& meta, stk::mesh::BulkData& bulk)
   }
 }
 
-void write_mesh(
+size_t init_write_mesh(
     const YAML::Node& inpfile,
     stk::mesh::MetaData& meta,
     stk::mesh::BulkData& bulk,
@@ -137,13 +137,14 @@ void write_mesh(
   bool do_write = true;
   if (inpfile["write_outputs"])
     do_write = inpfile["write_outputs"].as<bool>();
-  if (!do_write) return;
+  if (!do_write) return -1;
 
   bool has_motion = false;
   if (inpfile["motion_info"])
     has_motion = true;
 
   tag_procs(meta, bulk);
+
   ScalarFieldType* ibf = meta.get_field<ScalarFieldType>(
       stk::topology::NODE_RANK, "iblank");
   ScalarFieldType* ibcell = meta.get_field<ScalarFieldType>(
@@ -154,9 +155,12 @@ void write_mesh(
       (stk::topology::ELEM_RANK, "pid_elem");
 
   std::string out_mesh = inpfile["output_mesh"].as<std::string>();
+
   if (bulk.parallel_rank() == 0)
       std::cout << "Writing output file: " << out_mesh << std::endl;
+
   size_t fh = stkio.create_output_mesh(out_mesh, stk::io::WRITE_RESTART);
+
   stkio.add_field(fh, *ibf);
   stkio.add_field(fh, *ibcell);
   stkio.add_field(fh, *ipnode);
@@ -168,11 +172,18 @@ void write_mesh(
       stkio.add_field(fh, *mesh_disp);
   }
 
-  stkio.begin_output_step(fh, time);
-  stkio.write_defined_output_fields(fh);
-  stkio.end_output_step(fh);
+  return fh;
 }
 
+void write_mesh(
+    size_t fh,
+    stk::io::StkMeshIoBroker& stkio,
+    double time )
+{
+    stkio.begin_output_step(fh, time);
+    stkio.write_defined_output_fields(fh);
+    stkio.end_output_step(fh);
+}
 
 int main(int argc, char** argv)
 {
@@ -259,6 +270,9 @@ int main(int argc, char** argv)
       if (iproc == 0)
           std::cout << "Completed initial overset connectivity" << std::endl;
 
+      size_t ofileID = init_write_mesh(inpfile, meta, bulk, stkio, 0.0);
+      write_mesh(ofileID, stkio, 0.0); // write the initial time step
+
       if (has_motion) {
           int nsteps = mesh_motion->num_steps();
           if (iproc == 0)
@@ -275,16 +289,17 @@ int main(int argc, char** argv)
               tg.execute();
               tg.check_soln_norm();
               print_memory_diag(bulk);
+
+              {
+                  auto timeMon3 = tioga_nalu::get_timer("stk2tioga::write_mesh");
+                  double curr_time = has_motion ? mesh_motion->current_time() : 0.0;
+                  write_mesh(ofileID, stkio, curr_time);
+              }
+
           }
       }
 
       stk::parallel_machine_barrier(bulk.parallel());
-
-      {
-          auto timeMon3 = tioga_nalu::get_timer("stk2tioga::write_mesh");
-          double curr_time = has_motion ? mesh_motion->current_time() : 0.0;
-          write_mesh(inpfile, meta, bulk, stkio, curr_time);
-      }
 
       bool dump_partitions = false;
       if (inpfile["dump_tioga_partitions"])

@@ -146,17 +146,20 @@ private:
   //! List of hole elements
   std::vector<stk::mesh::Entity> holeElems_;
 
-    //! List of receptor nodes that are shared entities across MPI ranks. This
-    //! information is used to synchronize the field vs. fringe point status for
-    //! these shared nodes across processor boundaries.
-    std::vector<stk::mesh::EntityId> receptorIDs_;
+  //! List of receptor nodes that are shared entities across MPI ranks. This
+  //! information is used to synchronize the field vs. fringe point status for
+  //! these shared nodes across processor boundaries.
+  std::vector<stk::mesh::EntityId> receptorIDs_;
 
-    //! Donor elements corresponding to TiogaSTKIface::receptorIDs_ that must be
-    //! ghosted to another MPI rank to ensure that owned and shared nodes are
-    //! consistent.
-    std::vector<stk::mesh::EntityId> donorIDs_;
+  //! Donor elements corresponding to TiogaSTKIface::receptorIDs_ that must be
+  //! ghosted to another MPI rank to ensure that owned and shared nodes are
+  //! consistent.
+  std::vector<stk::mesh::EntityId> donorIDs_;
 
-    std::string coordsName_;
+  std::string coordsName_;
+
+  //! Set the symmetry direction for TIOGA, default is z-direction (3)
+  int symmetryDir_{3};
 };
 
 
