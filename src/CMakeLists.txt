@@ -39,6 +39,7 @@ add_executable(stk2tioga
   MotionBase.cpp
   MeshMotion.cpp
   MeshRotation.cpp
+  MeshScaling.cpp
   MeshTranslation.cpp
 
   stk2tioga.cpp

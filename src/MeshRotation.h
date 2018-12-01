@@ -11,15 +11,12 @@ class MeshRotation : public MotionBase
 {
 public:
     MeshRotation(
-        stk::mesh::MetaData&,
-        stk::mesh::BulkData&,
-        const YAML::Node&);
+      stk::mesh::MetaData&,
+      const YAML::Node&);
 
     virtual ~MeshRotation() {}
 
-    virtual void initialize(double);
-
-    virtual void execute(double);
+    virtual void build_transformation(double);
 
 private:
     MeshRotation() = delete;
@@ -29,7 +26,7 @@ private:
 
     void rotate_mesh(double);
 
-    std::vector<double> origin_{0.0, 0.0, 0.0};
+    std::vector<double> origin_;
 
     std::vector<double> axis_;
 

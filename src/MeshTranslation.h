@@ -11,15 +11,12 @@ class MeshTranslation : public MotionBase
 {
 public:
   MeshTranslation(
-        stk::mesh::MetaData&,
-        stk::mesh::BulkData&,
-        const YAML::Node&);
+    stk::mesh::MetaData&,
+    const YAML::Node&);
 
     virtual ~MeshTranslation() {}
 
-    virtual void initialize(double);
-
-    virtual void execute(double);
+    virtual void build_transformation(double);
 
 private:
     MeshTranslation() = delete;
@@ -27,11 +24,7 @@ private:
 
     void load(const YAML::Node&);
 
-    std::vector<double> origin_{0.0, 0.0, 0.0};
-
-    std::vector<double> axis_;
-
-    double omega_{0.0};
+    std::vector<double> direction_;
 };
 
 

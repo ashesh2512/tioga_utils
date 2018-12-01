@@ -231,12 +231,12 @@ int main(int argc, char** argv)
       std::string coords_name = "coordinates";
       if (has_motion) {
           mesh_motion.reset(
-              new tioga_nalu::MeshMotion(meta, bulk, inpfile["motion_info"]));
+            new tioga_nalu::MeshMotion(meta, bulk, inpfile["motion_info"]));
           coords_name = "current_coordinates";
       }
 
-      const YAML::Node& oset_info = inpfile["overset_info"];
-      tioga_nalu::TiogaSTKIface tg(meta, bulk, oset_info, coords_name);
+      const YAML::Node& ovset_info = inpfile["overset_info"];
+      tioga_nalu::TiogaSTKIface tg(meta, bulk, ovset_info, coords_name);
 
       if (iproc == 0)
           std::cout << "Calling TIOGA setup... " << std::endl;

@@ -3,14 +3,18 @@
 
 #include "MotionBase.h"
 
-#include "stk_mesh/base/MetaData.hpp"
 #include "stk_mesh/base/BulkData.hpp"
+#include "stk_mesh/base/CoordinateSystems.hpp"
+#include "stk_mesh/base/Field.hpp"
 
 #include "yaml-cpp/yaml.h"
 
 #include <memory>
 
 namespace tioga_nalu {
+
+typedef stk::mesh::Field<double, stk::mesh::Cartesian> VectorFieldType;
+typedef stk::mesh::Field<double> ScalarFieldType;
 
 class MeshMotion
 {
@@ -40,11 +44,38 @@ private:
 
     void init_coordinates();
 
+    /**
+     *  @param[in] gid       Motion group id
+     *  @param[in] trans_mat Transformation matrix
+     */
+    void update_coordinates(
+      const int gid,
+      const std::vector<std::vector<double>>& trans_mat );
+
     stk::mesh::MetaData& meta_;
 
     stk::mesh::BulkData& bulk_;
 
-    std::vector<std::unique_ptr<MotionBase>> meshMotionVec_;
+    /** Motion vector
+     *
+     *  A two-dimensional list of size number of motion groups
+     *  Each entry in the outer list is size number of motions in that group
+     */
+    std::vector<std::vector<std::unique_ptr<MotionBase>>> meshMotionVec_;
+
+    /** Motion part names
+     *
+     *  A two-dimensional list of size number of motion groups
+     *  Each entry in the outer list is size number of parts in that group
+     */
+    std::vector<std::vector<std::string>> partNamesVec_;
+
+    /** Motion parts
+     *
+     *  A two-dimensional list of size number of motion groups
+     *  Each entry in the outer list is size number of parts in that group
+     */
+    std::vector<stk::mesh::PartVector> partVec_;
 
     double startTime_{0.0};
     double deltaT_{0.0};
