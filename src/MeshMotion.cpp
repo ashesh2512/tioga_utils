@@ -22,7 +22,7 @@ MeshMotion::MeshMotion(
 
 void MeshMotion::load(const YAML::Node& node)
 {
-  const auto minfo = node["motion_group"];
+  const auto& minfo = node["motion_group"];
 
   const int num_groups = minfo.size();
   meshMotionVec_.resize(num_groups);
