@@ -4,13 +4,17 @@
 #include "stk_mesh/base/MetaData.hpp"
 
 #include <cassert>
-#include <vector>
 
 namespace tioga_nalu {
 
 class MotionBase
 {
 public:
+  /** Define matrix type alias and size for transformation matrices
+   */
+  static constexpr int trans_mat_size = 4;
+  using trans_mat_type = std::array<std::array<double, trans_mat_size>, trans_mat_size>;
+
   MotionBase(stk::mesh::MetaData &meta)
       : meta_(meta) {}
 
@@ -24,17 +28,17 @@ public:
    * @param[in] motionR Right matrix in composite transformation of matrices
    * @return    4x4 matrix representing composite addition of motions
    */
-  std::vector<std::vector<double>> add_motion(
-    const std::vector<std::vector<double>>& motionL,
-    const std::vector<std::vector<double>>& motionR);
+  trans_mat_type add_motion(
+    const trans_mat_type& motionL,
+    const trans_mat_type& motionR);
 
-  const std::vector<std::vector<double>>& get_trans_mat() const {
-    return trans_mat_ ; }
+  const trans_mat_type& get_trans_mat() const {
+    return trans_mat_; }
 
 protected:
-  void reset_trans_mat(){
-    for (auto &vec : trans_mat_)
-        std::fill(vec.begin(), vec.end(), 0.0); }
+  void reset(trans_mat_type& mat) {
+    for (auto& row : mat)
+      row.fill(0.0); }
 
   stk::mesh::MetaData& meta_;
 
@@ -43,8 +47,7 @@ protected:
    * A 4x4 matrix that combines rotation, translation, scaling,
    * allowing representation of all affine transformations
    */
-  std::vector<std::vector<double>> trans_mat_ =
-      std::vector<std::vector<double>> (4,std::vector<double>(4,0.0));
+  trans_mat_type trans_mat_ = {};
 
 private:
     MotionBase() = delete;

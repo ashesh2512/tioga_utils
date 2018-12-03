@@ -25,14 +25,13 @@ void MeshRotation::load(const YAML::Node& node)
 
 void MeshRotation::build_transformation(double time)
 {
-  reset_trans_mat();
+  reset(trans_mat_);
 
   // Build matrix for translating object to cartesian origin
-  trans_mat_ =
-    { { 1.0, 0.0, 0.0, -origin_[0] },
-      { 0.0, 1.0, 0.0, -origin_[1] },
-      { 0.0, 0.0, 1.0, -origin_[2] },
-      { 0.0, 0.0, 0.0,  1.0        } };
+  trans_mat_[0][0] = 1.0; trans_mat_[0][3] = -origin_[0];
+  trans_mat_[1][1] = 1.0; trans_mat_[1][3] = -origin_[1];
+  trans_mat_[2][2] = 1.0; trans_mat_[2][3] = -origin_[2];
+  trans_mat_[3][3] = 1.0;
 
   // Build matrix for rotating object
   // compute magnitude of axis around which to rotate
@@ -51,24 +50,41 @@ void MeshRotation::build_transformation(double time)
   const double q3 = sinang * axis_[2]/mag;
 
   // rotation matrix based on quaternion
-  std::vector<std::vector<double>> curr_trans_mat_ =
-  { { q0*q0 + q1*q1 - q2*q2 - q3*q3,            2.0*(q1*q2 - q0*q3),           2.0*(q0*q2 + q1*q3), 0.0 },
-    {           2.0*(q1*q2 + q0*q3),  q0*q0 - q1*q1 + q2*q2 - q3*q3,           2.0*(q2*q3 - q0*q1), 0.0 },
-    {           2.0*(q1*q3 - q0*q2),            2.0*(q0*q1 + q2*q3), q0*q0 - q1*q1 - q2*q2 + q3*q3, 0.0 },
-    {                           0.0,                            0.0,                           0.0, 1.0 } };
+  MotionBase::trans_mat_type curr_trans_mat_ = {};
+  // 1st row
+  curr_trans_mat_[0][0] = q0*q0 + q1*q1 - q2*q2 - q3*q3;
+  curr_trans_mat_[0][1] = 2.0*(q1*q2 - q0*q3);
+  curr_trans_mat_[0][2] = 2.0*(q0*q2 + q1*q3);
+  // 2nd row
+  curr_trans_mat_[1][0] = 2.0*(q1*q2 + q0*q3);
+  curr_trans_mat_[1][1] = q0*q0 - q1*q1 + q2*q2 - q3*q3;
+  curr_trans_mat_[1][2] = 2.0*(q2*q3 - q0*q1);
+  // 3rd row
+  curr_trans_mat_[2][0] = 2.0*(q1*q3 - q0*q2);
+  curr_trans_mat_[2][1] = 2.0*(q0*q1 + q2*q3);
+  curr_trans_mat_[2][2] = q0*q0 - q1*q1 - q2*q2 + q3*q3;
+  // 4th row
+  curr_trans_mat_[3][3] = 1.0;
 
   // composite addition of motions in current group
   trans_mat_ = add_motion(curr_trans_mat_,trans_mat_);
 
   // Build matrix for translating object back to its origin
-  curr_trans_mat_ =
-    { { 1.0, 0.0, 0.0, origin_[0] },
-      { 0.0, 1.0, 0.0, origin_[1] },
-      { 0.0, 0.0, 1.0, origin_[2] },
-      { 0.0, 0.0, 0.0, 1.0        } };
+  reset(curr_trans_mat_);
+  curr_trans_mat_[0][0] = 1.0; curr_trans_mat_[0][3] = origin_[0];
+  curr_trans_mat_[1][1] = 1.0; curr_trans_mat_[1][3] = origin_[1];
+  curr_trans_mat_[2][2] = 1.0; curr_trans_mat_[2][3] = origin_[2];
+  curr_trans_mat_[3][3] = 1.0;
 
   // composite addition of motions
   trans_mat_ = add_motion(curr_trans_mat_,trans_mat_);
+
+  for (int r = 0; r < trans_mat_size; r++) {
+    for (int c = 0; c < trans_mat_size; c++) {
+      std::cout<<trans_mat_[r][c]<<" ";
+    } // end for loop - column index
+    std::cout<<std::endl;
+  } // end for loop - row index
 }
 
 } // tioga_nalu

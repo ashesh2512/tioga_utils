@@ -50,7 +50,7 @@ private:
      */
     void update_coordinates(
       const int gid,
-      const std::vector<std::vector<double>>& trans_mat );
+      MotionBase::trans_mat_type trans_mat );
 
     stk::mesh::MetaData& meta_;
 

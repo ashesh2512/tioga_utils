@@ -120,19 +120,20 @@ void MeshMotion::initialize()
     if (startTime_ > 0.0)
     {
       const int num_groups = meshMotionVec_.size();
+      const int mat_size = MotionBase::trans_mat_size;
 
       for (int i=0; i < num_groups; i++)
       {
         // initialize composite transformation matrix to be an identity matrix
-        std::vector<std::vector<double>> comp_trans_mat_(4,std::vector<double>(4,0.0));
-        for(int in = 0; in < 4; in++)
+        MotionBase::trans_mat_type comp_trans_mat_ = {};
+        for(int in = 0; in < mat_size; in++)
           comp_trans_mat_[in][in] = 1.0;
 
         for (auto& mm: meshMotionVec_[i])
         {
           // build and get transformation matrix
           mm->build_transformation(startTime_);
-          std::vector<std::vector<double>> curr_trans_mat_ = mm->get_trans_mat();
+          const MotionBase::trans_mat_type& curr_trans_mat_ = mm->get_trans_mat();
 
           // composite addition of motions in current group
           comp_trans_mat_ = mm->add_motion(curr_trans_mat_,comp_trans_mat_);
@@ -148,19 +149,20 @@ void MeshMotion::execute(const int istep)
     currentTime_ = curr_time;
 
     const int num_groups = meshMotionVec_.size();
+    const int mat_size = MotionBase::trans_mat_size;
 
     for (int i=0; i < num_groups; i++)
     {
       // initialize composite transformation matrix to be an identity matrix
-      std::vector<std::vector<double>> comp_trans_mat_(4,std::vector<double>(4,0.0));
-      for(int in = 0; in < 4; in++)
+      MotionBase::trans_mat_type comp_trans_mat_ = {};
+      for(int in = 0; in < mat_size; in++)
         comp_trans_mat_[in][in] = 1.0;
 
       for (auto& mm: meshMotionVec_[i])
       {
         // build and get transformation matrix
         mm->build_transformation(currentTime_);
-        std::vector<std::vector<double>> curr_trans_mat_ = mm->get_trans_mat();
+        const MotionBase::trans_mat_type& curr_trans_mat_ = mm->get_trans_mat();
 
         // composite addition of motions in current group
         comp_trans_mat_ = mm->add_motion(curr_trans_mat_,comp_trans_mat_);
@@ -194,7 +196,7 @@ void MeshMotion::init_coordinates()
 
 void MeshMotion::update_coordinates(
   const int gid,
-  const std::vector<std::vector<double>>& trans_mat )
+  MotionBase::trans_mat_type trans_mat )
 {
   const int ndim = meta_.spatial_dimension();
   VectorFieldType* modelCoords = meta_.get_field<VectorFieldType>(

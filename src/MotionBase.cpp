@@ -3,15 +3,15 @@
 
 namespace tioga_nalu {
 
-std::vector<std::vector<double>> MotionBase::add_motion(
-const std::vector<std::vector<double>>& motionL,
-const std::vector<std::vector<double>>& motionR)
+MotionBase::trans_mat_type MotionBase::add_motion(
+    const trans_mat_type& motionL,
+    const trans_mat_type& motionR)
 {
-  std::vector<std::vector<double>> comp_trans_mat_(4,std::vector<double>(4,0.0));
+  trans_mat_type comp_trans_mat_ = {};
 
-  for (int r = 0; r < 4; r++) {
-    for (int c = 0; c < 4; c++) {
-      for (int k = 0; k < 4; k++) {
+  for (int r = 0; r < trans_mat_size; r++) {
+    for (int c = 0; c < trans_mat_size; c++) {
+      for (int k = 0; k < trans_mat_size; k++) {
         comp_trans_mat_[r][c] += motionL[r][k] * motionR[k][c];
       } // end for loop - k index
     } // end for loop - column index

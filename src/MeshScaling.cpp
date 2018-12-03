@@ -24,31 +24,31 @@ void MeshScaling::load(const YAML::Node& node)
 
 void MeshScaling::build_transformation(double time)
 {
-  reset_trans_mat();
+  reset(trans_mat_);
 
   // Build matrix for translating object to cartesian origin
-  trans_mat_ =
-    { { 1.0, 0.0, 0.0, -origin_[0] },
-      { 0.0, 1.0, 0.0, -origin_[1] },
-      { 0.0, 0.0, 1.0, -origin_[2] },
-      { 0.0, 0.0, 0.0,  1.0        } };
+  trans_mat_[0][0] = 1.0; trans_mat_[0][3] = -origin_[0];
+  trans_mat_[1][1] = 1.0; trans_mat_[1][3] = -origin_[1];
+  trans_mat_[2][2] = 1.0; trans_mat_[2][3] = -origin_[2];
+  trans_mat_[3][3] = 1.0;
 
   // Build matrix for scaling object
-  std::vector<std::vector<double>> curr_trans_mat_ =
-  { { factor_[0]*time,             0.0,             0.0, 0.0 },
-    {             0.0, factor_[1]*time,             0.0, 0.0 },
-    {             0.0,             0.0, factor_[2]*time, 0.0 },
-    {             0.0,             0.0,             0.0, 1.0 } };
+  MotionBase::trans_mat_type curr_trans_mat_ = {};
+
+  curr_trans_mat_[0][0] = factor_[0]*time;
+  curr_trans_mat_[1][1] = factor_[1]*time;
+  curr_trans_mat_[2][2] = factor_[2]*time;
+  curr_trans_mat_[3][3] = 1.0;
 
   // composite addition of motions in current group
   trans_mat_ = add_motion(curr_trans_mat_,trans_mat_);
 
   // Build matrix for translating object back to its origin
-  curr_trans_mat_ =
-    { { 1.0, 0.0, 0.0, origin_[0] },
-      { 0.0, 1.0, 0.0, origin_[1] },
-      { 0.0, 0.0, 1.0, origin_[2] },
-      { 0.0, 0.0, 0.0, 1.0        } };
+  reset(curr_trans_mat_);
+  curr_trans_mat_[0][0] = 1.0; curr_trans_mat_[0][3] = origin_[0];
+  curr_trans_mat_[1][1] = 1.0; curr_trans_mat_[1][3] = origin_[1];
+  curr_trans_mat_[2][2] = 1.0; curr_trans_mat_[2][3] = origin_[2];
+  curr_trans_mat_[3][3] = 1.0;
 
   // composite addition of motions
   trans_mat_ = add_motion(curr_trans_mat_,trans_mat_);

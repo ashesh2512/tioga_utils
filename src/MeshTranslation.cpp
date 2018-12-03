@@ -21,7 +21,7 @@ void MeshTranslation::load(const YAML::Node& node)
 
 void MeshTranslation::build_transformation(double time)
 {
-  reset_trans_mat();
+  reset(trans_mat_);
 
   // Build matrix for translating object to cartesian origin
   for(int in = 0; in < 4; in++)
