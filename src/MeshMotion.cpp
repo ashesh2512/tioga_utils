@@ -11,13 +11,13 @@
 namespace tioga_nalu {
 
 MeshMotion::MeshMotion(
-    stk::mesh::MetaData& meta,
-    stk::mesh::BulkData& bulk,
-    const YAML::Node& node
+  stk::mesh::MetaData& meta,
+  stk::mesh::BulkData& bulk,
+  const YAML::Node& node
 ) : meta_(meta),
     bulk_(bulk)
 {
-    load(node);
+  load(node);
 }
 
 void MeshMotion::load(const YAML::Node& node)
@@ -79,75 +79,46 @@ void MeshMotion::load(const YAML::Node& node)
 
 void MeshMotion::setup()
 {
-    VectorFieldType& coordinates = meta_.declare_field<VectorFieldType>(
-        stk::topology::NODE_RANK, "coordinates");
-    VectorFieldType& current_coordinates = meta_.declare_field<VectorFieldType>(
-        stk::topology::NODE_RANK, "current_coordinates");
-    VectorFieldType& mesh_displacement = meta_.declare_field<VectorFieldType>(
-        stk::topology::NODE_RANK, "mesh_displacement");
+  VectorFieldType& coordinates = meta_.declare_field<VectorFieldType>(
+    stk::topology::NODE_RANK, "coordinates");
+  VectorFieldType& current_coordinates = meta_.declare_field<VectorFieldType>(
+    stk::topology::NODE_RANK, "current_coordinates");
+  VectorFieldType& mesh_displacement = meta_.declare_field<VectorFieldType>(
+    stk::topology::NODE_RANK, "mesh_displacement");
 
-    stk::mesh::put_field(coordinates, meta_.universal_part());
-    stk::mesh::put_field(current_coordinates, meta_.universal_part());
-    stk::mesh::put_field(mesh_displacement, meta_.universal_part());
+  stk::mesh::put_field(coordinates, meta_.universal_part());
+  stk::mesh::put_field(current_coordinates, meta_.universal_part());
+  stk::mesh::put_field(mesh_displacement, meta_.universal_part());
 
-    const int num_groups = partNamesVec_.size();
-    partVec_.resize(num_groups);
+  const int num_groups = partNamesVec_.size();
+  partVec_.resize(num_groups);
 
-    for (int i=0; i < num_groups; i++) {
+  for (int i=0; i < num_groups; i++) {
 
-      for (auto pName: partNamesVec_[i]) {
-          stk::mesh::Part* part = meta_.get_part(pName);
-          if (nullptr == part)
-              throw std::runtime_error(
-                  "MeshMotion: Invalid part name encountered: " + pName);
-          else
-              partVec_[i].push_back(part);
-      } // end for loop - partNamesVec_
+    for (auto pName: partNamesVec_[i]) {
+      stk::mesh::Part* part = meta_.get_part(pName);
+      if (nullptr == part)
+        throw std::runtime_error(
+          "MeshMotion: Invalid part name encountered: " + pName);
+      else
+        partVec_[i].push_back(part);
+    } // end for loop - partNamesVec_
 
-      for (auto* p: partVec_[i]) {
-          stk::mesh::put_field(coordinates, *p);
-          stk::mesh::put_field(current_coordinates, *p);
-          stk::mesh::put_field(mesh_displacement, *p);
-      } // end for loop - partVec_
+    for (auto* p: partVec_[i]) {
+      stk::mesh::put_field(coordinates, *p);
+      stk::mesh::put_field(current_coordinates, *p);
+      stk::mesh::put_field(mesh_displacement, *p);
+    } // end for loop - partVec_
 
-    } // end for loop - i index
+  } // end for loop - i index
 }
 
 void MeshMotion::initialize()
 {
-    init_coordinates();
+  init_coordinates();
 
-    if (startTime_ > 0.0)
-    {
-      const int num_groups = meshMotionVec_.size();
-      const int mat_size = MotionBase::trans_mat_size;
-
-      for (int i=0; i < num_groups; i++)
-      {
-        // initialize composite transformation matrix to be an identity matrix
-        MotionBase::trans_mat_type comp_trans_mat_ = {};
-        for(int in = 0; in < mat_size; in++)
-          comp_trans_mat_[in][in] = 1.0;
-
-        for (auto& mm: meshMotionVec_[i])
-        {
-          // build and get transformation matrix
-          mm->build_transformation(startTime_);
-          const MotionBase::trans_mat_type& curr_trans_mat_ = mm->get_trans_mat();
-
-          // composite addition of motions in current group
-          comp_trans_mat_ = mm->add_motion(curr_trans_mat_,comp_trans_mat_);
-        }
-        update_coordinates( i, comp_trans_mat_ );
-      }
-    }
-}
-
-void MeshMotion::execute(const int istep)
-{
-    const double curr_time = startTime_ + (istep + 1) * deltaT_;
-    currentTime_ = curr_time;
-
+  if (startTime_ > 0.0)
+  {
     const int num_groups = meshMotionVec_.size();
     const int mat_size = MotionBase::trans_mat_size;
 
@@ -161,7 +132,7 @@ void MeshMotion::execute(const int istep)
       for (auto& mm: meshMotionVec_[i])
       {
         // build and get transformation matrix
-        mm->build_transformation(currentTime_);
+        mm->build_transformation(startTime_);
         const MotionBase::trans_mat_type& curr_trans_mat_ = mm->get_trans_mat();
 
         // composite addition of motions in current group
@@ -169,29 +140,58 @@ void MeshMotion::execute(const int istep)
       }
       update_coordinates( i, comp_trans_mat_ );
     }
+  }
+}
+
+void MeshMotion::execute(const int istep)
+{
+  const double curr_time = startTime_ + (istep + 1) * deltaT_;
+  currentTime_ = curr_time;
+
+  const int num_groups = meshMotionVec_.size();
+  const int mat_size = MotionBase::trans_mat_size;
+
+  for (int i=0; i < num_groups; i++)
+  {
+    // initialize composite transformation matrix to be an identity matrix
+    MotionBase::trans_mat_type comp_trans_mat_ = {};
+    for(int in = 0; in < mat_size; in++)
+      comp_trans_mat_[in][in] = 1.0;
+
+    for (auto& mm: meshMotionVec_[i])
+    {
+      // build and get transformation matrix
+      mm->build_transformation(currentTime_);
+      const MotionBase::trans_mat_type& curr_trans_mat_ = mm->get_trans_mat();
+
+      // composite addition of motions in current group
+      comp_trans_mat_ = mm->add_motion(curr_trans_mat_,comp_trans_mat_);
+    }
+    update_coordinates( i, comp_trans_mat_ );
+  }
 }
 
 void MeshMotion::init_coordinates()
 {
-    const int ndim = meta_.spatial_dimension();
-    VectorFieldType* modelCoords = meta_.get_field<VectorFieldType>(
-        stk::topology::NODE_RANK, "coordinates");
-    VectorFieldType* currCoords = meta_.get_field<VectorFieldType>(
-        stk::topology::NODE_RANK, "current_coordinates");
+  const int ndim = meta_.spatial_dimension();
+  VectorFieldType* modelCoords = meta_.get_field<VectorFieldType>(
+    stk::topology::NODE_RANK, "coordinates");
+  VectorFieldType* currCoords = meta_.get_field<VectorFieldType>(
+    stk::topology::NODE_RANK, "current_coordinates");
 
-    stk::mesh::Selector sel = meta_.universal_part();
-    const auto& bkts = bulk_.get_buckets(stk::topology::NODE_RANK, sel);
+  stk::mesh::Selector sel = meta_.universal_part();
+  const auto& bkts = bulk_.get_buckets(stk::topology::NODE_RANK, sel);
 
-    for (auto b: bkts) {
-        for (size_t in=0; in < b->size(); in++) {
-            auto node = (*b)[in];
-            double* oldxyz = stk::mesh::field_data(*modelCoords, node);
-            double* xyz = stk::mesh::field_data(*currCoords, node);
+  for (auto b: bkts) {
+    for (size_t in=0; in < b->size(); in++) {
+      auto node = (*b)[in];
+      double* oldxyz = stk::mesh::field_data(*modelCoords, node);
+      double* xyz = stk::mesh::field_data(*currCoords, node);
 
-            for (int d=0; d < ndim; d++)
-                xyz[d] = oldxyz[d];
-        }
+      for (int d=0; d < ndim; d++)
+        xyz[d] = oldxyz[d];
     }
+  }
 }
 
 void MeshMotion::update_coordinates(
