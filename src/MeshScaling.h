@@ -14,18 +14,18 @@ public:
     stk::mesh::MetaData&,
     const YAML::Node&);
 
-    virtual ~MeshScaling() {}
+  virtual ~MeshScaling() {}
 
-    virtual void build_transformation(double);
+  virtual void build_transformation(double);
 
 private:
-    MeshScaling() = delete;
-    MeshScaling(const MeshScaling&) = delete;
+  MeshScaling() = delete;
+  MeshScaling(const MeshScaling&) = delete;
 
-    void load(const YAML::Node&);
+  void load(const YAML::Node&);
 
-    std::vector<double> factor_;
-    std::vector<double> origin_;
+  std::vector<double> factor_;
+  std::vector<double> origin_;
 };
 
 

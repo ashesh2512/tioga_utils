@@ -10,27 +10,27 @@ namespace tioga_nalu {
 class MeshRotation : public MotionBase
 {
 public:
-    MeshRotation(
-      stk::mesh::MetaData&,
-      const YAML::Node&);
+  MeshRotation(
+    stk::mesh::MetaData&,
+    const YAML::Node&);
 
-    virtual ~MeshRotation() {}
+  virtual ~MeshRotation() {}
 
-    virtual void build_transformation(double);
+  virtual void build_transformation(double);
 
 private:
-    MeshRotation() = delete;
-    MeshRotation(const MeshRotation&) = delete;
+  MeshRotation() = delete;
+  MeshRotation(const MeshRotation&) = delete;
 
-    void load(const YAML::Node&);
+  void load(const YAML::Node&);
 
-    void rotate_mesh(double);
+  void rotate_mesh(double);
 
-    std::vector<double> origin_;
+  std::vector<double> origin_;
 
-    std::vector<double> axis_;
+  std::vector<double> axis_;
 
-    double omega_{0.0};
+  double omega_{0.0};
 };
 
 

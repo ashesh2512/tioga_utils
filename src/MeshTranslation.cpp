@@ -10,13 +10,13 @@ MeshTranslation::MeshTranslation(
   const YAML::Node& node )
 : MotionBase(meta)
 {
-    load(node);
+  load(node);
 }
 
 void MeshTranslation::load(const YAML::Node& node)
 {
-    direction_ = node["direction"].as<std::vector<double>>();
-    assert(direction_.size() == 3);
+  direction_ = node["direction"].as<std::vector<double>>();
+  assert(direction_.size() == 3);
 }
 
 void MeshTranslation::build_transformation(double time)

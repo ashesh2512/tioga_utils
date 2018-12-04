@@ -14,17 +14,17 @@ public:
     stk::mesh::MetaData&,
     const YAML::Node&);
 
-    virtual ~MeshTranslation() {}
+  virtual ~MeshTranslation() {}
 
-    virtual void build_transformation(double);
+  virtual void build_transformation(double);
 
 private:
-    MeshTranslation() = delete;
-    MeshTranslation(const MeshTranslation&) = delete;
+  MeshTranslation() = delete;
+  MeshTranslation(const MeshTranslation&) = delete;
 
-    void load(const YAML::Node&);
+  void load(const YAML::Node&);
 
-    std::vector<double> direction_;
+  std::vector<double> direction_;
 };
 
 

@@ -10,16 +10,16 @@ MeshScaling::MeshScaling(
   const YAML::Node& node )
 : MotionBase(meta)
 {
-    load(node);
+  load(node);
 }
 
 void MeshScaling::load(const YAML::Node& node)
 {
-    factor_ = node["factor"].as<std::vector<double>>();
-    origin_ = node["origin"].as<std::vector<double>>();
+  factor_ = node["factor"].as<std::vector<double>>();
+  origin_ = node["origin"].as<std::vector<double>>();
 
-    assert(factor_.size() == 3);
-    assert(origin_.size() == 3);
+  assert(factor_.size() == 3);
+  assert(origin_.size() == 3);
 }
 
 void MeshScaling::build_transformation(double time)

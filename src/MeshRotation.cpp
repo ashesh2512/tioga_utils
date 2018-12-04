@@ -10,17 +10,17 @@ MeshRotation::MeshRotation(
   const YAML::Node& node )
 : MotionBase(meta)
 {
-    load(node);
+  load(node);
 }
 
 void MeshRotation::load(const YAML::Node& node)
 {
-    omega_ = node["omega"].as<double>();
-    axis_ = node["axis"].as<std::vector<double>>();
-    origin_ = node["origin"].as<std::vector<double>>();
+  omega_ = node["omega"].as<double>();
+  axis_ = node["axis"].as<std::vector<double>>();
+  origin_ = node["origin"].as<std::vector<double>>();
 
-    assert(axis_.size() == meta_.spatial_dimension());
-    assert(origin_.size() == meta_.spatial_dimension());
+  assert(axis_.size() == meta_.spatial_dimension());
+  assert(origin_.size() == meta_.spatial_dimension());
 }
 
 void MeshRotation::build_transformation(double time)
