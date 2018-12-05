@@ -3,7 +3,10 @@
 
 #include "stk_mesh/base/MetaData.hpp"
 
+#include "yaml-cpp/yaml.h"
+
 #include <cassert>
+#include <float.h>
 
 namespace tioga_nalu {
 
@@ -16,7 +19,7 @@ public:
   using trans_mat_type = std::array<std::array<double, trans_mat_size>, trans_mat_size>;
 
   MotionBase(stk::mesh::MetaData &meta)
-      : meta_(meta) {}
+    : meta_(meta) {}
 
   virtual ~MotionBase() {}
 
@@ -37,8 +40,7 @@ public:
 
 protected:
   void reset(trans_mat_type& mat) {
-    for (auto& row : mat)
-      row.fill(0.0); }
+    mat = {{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}}; }
 
   stk::mesh::MetaData& meta_;
 
@@ -47,7 +49,15 @@ protected:
    * A 4x4 matrix that combines rotation, translation, scaling,
    * allowing representation of all affine transformations
    */
-  trans_mat_type trans_mat_ = {};
+  trans_mat_type trans_mat_ = {{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}};
+
+  double start_time_{0.0};
+  double end_time_{DBL_MAX};
+  const double eps_{1e-14};
+
+  // booleans to keep track of 1 time mesh motion at t>0.0
+  bool move_once_{false};
+  bool has_moved_{false};
 
 private:
     MotionBase() = delete;

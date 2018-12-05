@@ -3,8 +3,6 @@
 
 #include "MotionBase.h"
 
-#include "yaml-cpp/yaml.h"
-
 namespace tioga_nalu {
 
 class MeshTranslation : public MotionBase
@@ -16,7 +14,7 @@ public:
 
   virtual ~MeshTranslation() {}
 
-  virtual void build_transformation(double);
+  virtual void build_transformation(const double);
 
 private:
   MeshTranslation() = delete;
@@ -24,7 +22,14 @@ private:
 
   void load(const YAML::Node&);
 
-  std::vector<double> direction_;
+  void translation_mat(
+    const double,
+    const std::vector<double>&);
+
+  std::vector<double> displacement_;
+  std::vector<double> velocity_;
+
+  bool use_velocity_;
 };
 
 

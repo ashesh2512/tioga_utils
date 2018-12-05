@@ -3,8 +3,6 @@
 
 #include "MotionBase.h"
 
-#include "yaml-cpp/yaml.h"
-
 namespace tioga_nalu {
 
 class MeshScaling : public MotionBase
@@ -16,13 +14,15 @@ public:
 
   virtual ~MeshScaling() {}
 
-  virtual void build_transformation(double);
+  virtual void build_transformation(const double);
 
 private:
   MeshScaling() = delete;
   MeshScaling(const MeshScaling&) = delete;
 
   void load(const YAML::Node&);
+
+  void scaling_mat(const double);
 
   std::vector<double> factor_;
   std::vector<double> origin_;

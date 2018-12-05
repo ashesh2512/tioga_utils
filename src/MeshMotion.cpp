@@ -125,9 +125,7 @@ void MeshMotion::initialize()
     for (int i=0; i < num_groups; i++)
     {
       // initialize composite transformation matrix to be an identity matrix
-      MotionBase::trans_mat_type comp_trans_mat_ = {};
-      for(int in = 0; in < mat_size; in++)
-        comp_trans_mat_[in][in] = 1.0;
+      MotionBase::trans_mat_type comp_trans_mat_ = {{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}} ;
 
       for (auto& mm: meshMotionVec_[i])
       {
@@ -154,9 +152,7 @@ void MeshMotion::execute(const int istep)
   for (int i=0; i < num_groups; i++)
   {
     // initialize composite transformation matrix to be an identity matrix
-    MotionBase::trans_mat_type comp_trans_mat_ = {};
-    for(int in = 0; in < mat_size; in++)
-      comp_trans_mat_[in][in] = 1.0;
+    MotionBase::trans_mat_type comp_trans_mat_ = {{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}} ;
 
     for (auto& mm: meshMotionVec_[i])
     {

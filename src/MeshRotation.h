@@ -3,8 +3,6 @@
 
 #include "MotionBase.h"
 
-#include "yaml-cpp/yaml.h"
-
 namespace tioga_nalu {
 
 class MeshRotation : public MotionBase
@@ -16,7 +14,7 @@ public:
 
   virtual ~MeshRotation() {}
 
-  virtual void build_transformation(double);
+  virtual void build_transformation(const double);
 
 private:
   MeshRotation() = delete;
@@ -24,13 +22,17 @@ private:
 
   void load(const YAML::Node&);
 
-  void rotate_mesh(double);
+  void rotation_mat(
+    const double,
+    const double);
 
   std::vector<double> origin_;
-
   std::vector<double> axis_;
 
   double omega_{0.0};
+  double angle_{0.0};
+
+  bool use_omega_;
 };
 
 
