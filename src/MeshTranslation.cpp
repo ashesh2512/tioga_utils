@@ -49,22 +49,17 @@ void MeshTranslation::build_transformation(const double time)
     // determine current displacement
     std::vector<double> curr_disp = {0.0,0.0,0.0};
     if (use_velocity_)
-    {
       for (int d=0; d < meta_.spatial_dimension(); d++)
         curr_disp[d] = velocity_[d]*(time-start_time_);
-    }
     else
       curr_disp = displacement_;
 
-    translation_mat(time,curr_disp);
-
+    translation_mat(curr_disp);
     has_moved_ = true;
   }
 }
 
-void MeshTranslation::translation_mat(
-  const double time,
-  const std::vector<double>& curr_disp)
+void MeshTranslation::translation_mat(const std::vector<double>& curr_disp)
 {
   reset(trans_mat_);
 

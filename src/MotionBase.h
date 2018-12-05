@@ -64,7 +64,6 @@ private:
     MotionBase(const MotionBase&) = delete;
 };
 
-
 } // tioga_nalu
 
 #endif /* MOTIONBASE_H */

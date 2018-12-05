@@ -59,15 +59,12 @@ void MeshRotation::build_transformation(const double time)
     else
       curr_angle = angle_*M_PI/180;
 
-    rotation_mat(time,curr_angle);
-
+    rotation_mat(curr_angle);
     has_moved_ = true;
   }
 }
 
-void MeshRotation::rotation_mat(
-  const double time,
-  const double angle)
+void MeshRotation::rotation_mat(const double angle)
 {
   reset(trans_mat_);
 

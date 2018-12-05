@@ -22,9 +22,7 @@ private:
 
   void load(const YAML::Node&);
 
-  void rotation_mat(
-    const double,
-    const double);
+  void rotation_mat(const double);
 
   std::vector<double> origin_;
   std::vector<double> axis_;

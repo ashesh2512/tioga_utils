@@ -24,10 +24,20 @@ void MeshScaling::load(const YAML::Node& node)
   if (node["move_once"])
       move_once_ = node["move_once"].as<bool>();
 
-  factor_ = node["factor"].as<std::vector<double>>();
-  origin_ = node["origin"].as<std::vector<double>>();
+  // scaling could be based on velocity or factor
+  if(node["velocity"]){
+    use_velocity_ = true;
+    velocity_ = node["velocity"].as<std::vector<double>>();
+  }
+  if(node["factor"])
+  {
+    use_velocity_ = false;
+    factor_ = node["factor"].as<std::vector<double>>();
+  }
+  // ensure only 1 of velocity or displacement vector is specified
+  assert(velocity_.size() + factor_.size() == 3);
 
-  assert(factor_.size() == 3);
+  origin_ = node["origin"].as<std::vector<double>>();
   assert(origin_.size() == 3);
 }
 
@@ -39,16 +49,20 @@ void MeshScaling::build_transformation(const double time)
     if(move_once_ && has_moved_)
       return;
 
-    if(move_once_)
-      scaling_mat(1.0);
+    // determine current displacement
+    std::vector<double> factor = {0.0,0.0,0.0};
+    if (use_velocity_)
+      for (int d=0; d < meta_.spatial_dimension(); d++)
+        factor[d] = velocity_[d]*(time-start_time_);
     else
-      scaling_mat(time);
+      factor = factor_;
 
+    scaling_mat(factor);
     has_moved_ = true;
   }
 }
 
-void MeshScaling::scaling_mat(const double time)
+void MeshScaling::scaling_mat(const std::vector<double>& factor)
 {
   reset(trans_mat_);
 
@@ -60,9 +74,9 @@ void MeshScaling::scaling_mat(const double time)
   // Build matrix for scaling object
   trans_mat_type curr_trans_mat_ = {};
 
-  curr_trans_mat_[0][0] = factor_[0]*time;
-  curr_trans_mat_[1][1] = factor_[1]*time;
-  curr_trans_mat_[2][2] = factor_[2]*time;
+  curr_trans_mat_[0][0] = factor[0];
+  curr_trans_mat_[1][1] = factor[1];
+  curr_trans_mat_[2][2] = factor[2];
   curr_trans_mat_[3][3] = 1.0;
 
   // composite addition of motions in current group
@@ -76,14 +90,6 @@ void MeshScaling::scaling_mat(const double time)
 
   // composite addition of motions
   trans_mat_ = add_motion(curr_trans_mat_,trans_mat_);
-
-  for (int r = 0; r < trans_mat_size; r++) {
-    for (int c = 0; c < trans_mat_size; c++) {
-      std::cout<<trans_mat_[r][c]<<" ";
-    } // end for loop - column index
-    std::cout<<std::endl;
-  } // end for loop - row index
-
 }
 
 } // tioga_nalu

@@ -22,10 +22,13 @@ private:
 
   void load(const YAML::Node&);
 
-  void scaling_mat(const double);
+  void scaling_mat(const std::vector<double>&);
 
   std::vector<double> factor_;
+  std::vector<double> velocity_;
   std::vector<double> origin_;
+
+  bool use_velocity_;
 };
 
 

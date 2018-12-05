@@ -22,9 +22,7 @@ private:
 
   void load(const YAML::Node&);
 
-  void translation_mat(
-    const double,
-    const std::vector<double>&);
+  void translation_mat(const std::vector<double>&);
 
   std::vector<double> displacement_;
   std::vector<double> velocity_;
