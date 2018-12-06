@@ -99,7 +99,13 @@ MotionBase::threeD_vec_type MeshScaling::compute_velocity(
   threeD_vec_type vel = {};
 
   if( (time >= (start_time_-eps_)) && (time <= (end_time_+eps_)) )
-    vel = velocity_;
+  {
+    for (int d=0; d < threeD_vec_size; d++)
+    {
+      int signum = (-eps_ < xyz[d]-origin_[d]) - (xyz[d]-origin_[d] < eps_);
+      vel[d] = signum * velocity_[d];
+    }
+  }
 
   return vel;
 }
