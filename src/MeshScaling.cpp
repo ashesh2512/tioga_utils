@@ -94,7 +94,12 @@ MotionBase::threeD_vec_type MeshScaling::compute_velocity(
   const trans_mat_type& comp_trans,
   double* xyz )
 {
+  assert(!move_once_);
+
   threeD_vec_type vel = {};
+
+  if( (time >= (start_time_-eps_)) && (time <= (end_time_+eps_)) )
+    vel = velocity_;
 
   return vel;
 }
