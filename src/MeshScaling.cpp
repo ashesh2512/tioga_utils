@@ -100,9 +100,18 @@ MotionBase::threeD_vec_type MeshScaling::compute_velocity(
 
   if( (time >= (start_time_-eps_)) && (time <= (end_time_+eps_)) )
   {
+    // transform the origin of the rotating body
+    threeD_vec_type trans_origin = {};
+    for (int d = 0; d < threeD_vec_size; d++) {
+      trans_origin[d] = comp_trans[d][0]*origin_[0]
+                       +comp_trans[d][1]*origin_[1]
+                       +comp_trans[d][2]*origin_[2]
+                       +comp_trans[d][3];
+    }
+
     for (int d=0; d < threeD_vec_size; d++)
     {
-      int signum = (-eps_ < xyz[d]-origin_[d]) - (xyz[d]-origin_[d] < eps_);
+      int signum = (-eps_ < xyz[d]-trans_origin[d]) - (xyz[d]-trans_origin[d] < eps_);
       vel[d] = signum * velocity_[d];
     }
   }
