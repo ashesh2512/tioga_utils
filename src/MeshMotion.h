@@ -48,9 +48,14 @@ private:
    *  @param[in] gid       Motion group id
    *  @param[in] trans_mat Transformation matrix
    */
-  void update_coordinates(
+  void update_coordinates_velocity(
     const int gid,
     MotionBase::trans_mat_type trans_mat );
+
+  /**
+   *  @param[in] gid           Motion group id
+   */
+  void set_mesh_velocity(const int gid);
 
   stk::mesh::MetaData& meta_;
 

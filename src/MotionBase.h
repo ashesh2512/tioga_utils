@@ -13,17 +13,31 @@ namespace tioga_nalu {
 class MotionBase
 {
 public:
-  /** Define matrix type alias and size for transformation matrices
-   */
+  //! Define matrix type alias
   static constexpr int trans_mat_size = 4;
   using trans_mat_type = std::array<std::array<double, trans_mat_size>, trans_mat_size>;
 
-  MotionBase(stk::mesh::MetaData &meta)
-    : meta_(meta) {}
+  //! Define 3D vector type alias
+  static constexpr int threeD_vec_size = 3;
+  using threeD_vec_type = std::array<double, threeD_vec_size>;
+
+  MotionBase() {}
 
   virtual ~MotionBase() {}
 
   virtual void build_transformation(double) = 0;
+
+  /** Function to compute motion-specific velocity
+   *
+   * @param[in] time           Current time
+   * @param[in] comp_trans_mat Transformation matrix
+   *                           for points other than xyz
+   * @param[in] xyz            3D coordinates of a point
+   */
+  virtual threeD_vec_type compute_velocity(
+    double time,
+    const trans_mat_type& comp_trans,
+    double* xyz ) = 0;
 
   /** Composite addition of motions
    *
@@ -38,29 +52,30 @@ public:
   const trans_mat_type& get_trans_mat() const {
     return trans_mat_; }
 
-protected:
-  void reset(trans_mat_type& mat) {
-    mat = {{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}}; }
+  const trans_mat_type identity_mat_ = {{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}};
 
-  stk::mesh::MetaData& meta_;
+  //! boolean for one-time mesh motion
+  //! if start_time_ not set, this happens at start of simulation
+  bool move_once_{false};
+
+protected:
+  void reset_mat(trans_mat_type& mat) {
+    mat = identity_mat_; }
 
   /** Transformation matrix
    *
    * A 4x4 matrix that combines rotation, translation, scaling,
    * allowing representation of all affine transformations
    */
-  trans_mat_type trans_mat_ = {{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}};
+  trans_mat_type trans_mat_ = identity_mat_;
 
   double start_time_{0.0};
   double end_time_{DBL_MAX};
   const double eps_{1e-14};
 
-  // booleans to keep track of 1 time mesh motion at t>0.0
-  bool move_once_{false};
   bool has_moved_{false};
 
 private:
-    MotionBase() = delete;
     MotionBase(const MotionBase&) = delete;
 };
 

@@ -5,10 +5,8 @@
 
 namespace tioga_nalu {
 
-MeshScaling::MeshScaling(
-  stk::mesh::MetaData& meta,
-  const YAML::Node& node )
-: MotionBase(meta)
+MeshScaling::MeshScaling(const YAML::Node& node)
+  : MotionBase()
 {
   load(node);
 }
@@ -22,37 +20,36 @@ void MeshScaling::load(const YAML::Node& node)
     end_time_ = node["end_time"].as<double>();
 
   if (node["move_once"])
-      move_once_ = node["move_once"].as<bool>();
+    move_once_ = node["move_once"].as<bool>();
 
   // scaling could be based on velocity or factor
   if(node["velocity"]){
     use_velocity_ = true;
-    velocity_ = node["velocity"].as<std::vector<double>>();
+    velocity_ = node["velocity"].as<threeD_vec_type>();
   }
   if(node["factor"])
   {
     use_velocity_ = false;
-    factor_ = node["factor"].as<std::vector<double>>();
+    factor_ = node["factor"].as<threeD_vec_type>();
   }
   // ensure only 1 of velocity or displacement vector is specified
-  assert(velocity_.size() + factor_.size() == 3);
+  assert(velocity_.size() + factor_.size() == threeD_vec_size);
 
-  origin_ = node["origin"].as<std::vector<double>>();
-  assert(origin_.size() == 3);
+  origin_ = node["origin"].as<threeD_vec_type>();
+  assert(origin_.size() == threeD_vec_size);
 }
 
 void MeshScaling::build_transformation(const double time)
 {
+  if(move_once_)
+    assert(!has_moved_);
+
   if( (time >= (start_time_-eps_)) && (time <= (end_time_+eps_)) )
   {
-    // if move once is specified we stop moving after start time
-    if(move_once_ && has_moved_)
-      return;
-
     // determine current displacement
-    std::vector<double> factor = {0.0,0.0,0.0};
+    threeD_vec_type factor = {};
     if (use_velocity_)
-      for (int d=0; d < meta_.spatial_dimension(); d++)
+      for (int d=0; d < threeD_vec_size; d++)
         factor[d] = velocity_[d]*(time-start_time_);
     else
       factor = factor_;
@@ -62,9 +59,9 @@ void MeshScaling::build_transformation(const double time)
   }
 }
 
-void MeshScaling::scaling_mat(const std::vector<double>& factor)
+void MeshScaling::scaling_mat(const threeD_vec_type& factor)
 {
-  reset(trans_mat_);
+  reset_mat(trans_mat_);
 
   // Build matrix for translating object to cartesian origin
   trans_mat_[0][3] = -origin_[0];
@@ -83,13 +80,23 @@ void MeshScaling::scaling_mat(const std::vector<double>& factor)
   trans_mat_ = add_motion(curr_trans_mat_,trans_mat_);
 
   // Build matrix for translating object back to its origin
-  reset(curr_trans_mat_);
+  reset_mat(curr_trans_mat_);
   curr_trans_mat_[0][3] = origin_[0];
   curr_trans_mat_[1][3] = origin_[1];
   curr_trans_mat_[2][3] = origin_[2];
 
   // composite addition of motions
   trans_mat_ = add_motion(curr_trans_mat_,trans_mat_);
+}
+
+MotionBase::threeD_vec_type MeshScaling::compute_velocity(
+  double time,
+  const trans_mat_type& comp_trans,
+  double* xyz )
+{
+  threeD_vec_type vel = {};
+
+  return vel;
 }
 
 } // tioga_nalu

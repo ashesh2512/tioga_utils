@@ -169,7 +169,11 @@ size_t init_write_mesh(
   if (has_motion) {
       VectorFieldType* mesh_disp = meta.get_field<VectorFieldType>(
           stk::topology::NODE_RANK, "mesh_displacement");
+      VectorFieldType* mesh_vel = meta.get_field<VectorFieldType>(
+          stk::topology::NODE_RANK, "mesh_velocity");
+
       stkio.add_field(fh, *mesh_disp);
+      stkio.add_field(fh, *mesh_vel);
   }
 
   return fh;
