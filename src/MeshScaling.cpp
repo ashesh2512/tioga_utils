@@ -41,9 +41,6 @@ void MeshScaling::load(const YAML::Node& node)
 
 void MeshScaling::build_transformation(const double time)
 {
-  if(move_once_)
-    assert(!has_moved_);
-
   if( (time >= (start_time_-eps_)) && (time <= (end_time_+eps_)) )
   {
     // determine current displacement
@@ -55,7 +52,6 @@ void MeshScaling::build_transformation(const double time)
       factor = factor_;
 
     scaling_mat(factor);
-    has_moved_ = true;
   }
 }
 
@@ -111,7 +107,9 @@ MotionBase::threeD_vec_type MeshScaling::compute_velocity(
 
     for (int d=0; d < threeD_vec_size; d++)
     {
-      int signum = (-eps_ < xyz[d]-trans_origin[d]) - (xyz[d]-trans_origin[d] < eps_);
+      int signum = (-eps_ < xyz[d]-trans_origin[d]) -
+                           (xyz[d]-trans_origin[d] < eps_);
+
       vel[d] = signum * velocity_[d];
     }
   }

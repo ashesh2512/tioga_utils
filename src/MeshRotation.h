@@ -19,7 +19,7 @@ public:
    * @param[in] time           Current time
    * @param[in] comp_trans_mat Transformation matrix
    *                           for points other than xyz
-   * @param[in] xyz            3D coordinates of a point
+   * @param[in] xyz            Transformed coordinates
    */
   virtual threeD_vec_type compute_velocity(
     double time,

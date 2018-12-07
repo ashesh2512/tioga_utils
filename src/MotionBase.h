@@ -32,7 +32,7 @@ public:
    * @param[in] time           Current time
    * @param[in] comp_trans_mat Transformation matrix
    *                           for points other than xyz
-   * @param[in] xyz            3D coordinates of a point
+   * @param[in] xyz            Transformed coordinates
    */
   virtual threeD_vec_type compute_velocity(
     double time,
@@ -72,8 +72,6 @@ protected:
   double start_time_{0.0};
   double end_time_{DBL_MAX};
   const double eps_{1e-14};
-
-  bool has_moved_{false};
 
 private:
     MotionBase(const MotionBase&) = delete;

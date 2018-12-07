@@ -38,9 +38,6 @@ void MeshTranslation::load(const YAML::Node& node)
 
 void MeshTranslation::build_transformation(const double time)
 {
-  if(move_once_)
-    assert(!has_moved_);
-
   if( (time >= (start_time_-eps_)) && (time <= (end_time_+eps_)) )
   {
     // determine translation based on user defined input
@@ -54,8 +51,6 @@ void MeshTranslation::build_transformation(const double time)
     }
     else
       translation_mat(displacement_);
-
-    has_moved_ = true;
   }
 }
 

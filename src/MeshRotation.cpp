@@ -44,9 +44,6 @@ void MeshRotation::load(const YAML::Node& node)
 
 void MeshRotation::build_transformation(const double time)
 {
-  if(move_once_)
-    assert(!has_moved_);
-
   if( (time >= (start_time_-eps_)) && (time <= (end_time_+eps_)) )
   {
     // determine current angle
@@ -57,7 +54,6 @@ void MeshRotation::build_transformation(const double time)
       curr_angle = angle_*M_PI/180;
 
     rotation_mat(curr_angle);
-    has_moved_ = true;
   }
 }
 

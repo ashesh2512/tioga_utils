@@ -1,5 +1,6 @@
 
 #include "MeshMotion.h"
+#include "MeshPulsatingSphere.h"
 #include "MeshRotation.h"
 #include "MeshScaling.h"
 #include "MeshTranslation.h"
@@ -54,7 +55,9 @@ void MeshMotion::load(const YAML::Node& node)
       std::string type = motion_def["type"].as<std::string>();
 
       // determine type of mesh motion based on user definition in input file
-      if (type == "rotation")
+      if (type == "pulsating_sphere")
+        meshMotionVec_[i][j].reset(new MeshPulsatingSphere(motion_def));
+      else if (type == "rotation")
         meshMotionVec_[i][j].reset(new MeshRotation(motion_def));
       else if (type == "scaling")
         meshMotionVec_[i][j].reset(new MeshScaling(motion_def));
