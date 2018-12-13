@@ -1,9 +1,9 @@
 
 #include "MeshMotion.h"
-#include "MeshPulsatingSphere.h"
-#include "MeshRotation.h"
-#include "MeshScaling.h"
-#include "MeshTranslation.h"
+#include "MotionPulsatingSphere.h"
+#include "MotionRotation.h"
+#include "MotionScaling.h"
+#include "MotionTranslation.h"
 
 // stk_mesh/base/fem
 #include <stk_mesh/base/Field.hpp>
@@ -56,13 +56,13 @@ void MeshMotion::load(const YAML::Node& node)
 
       // determine type of mesh motion based on user definition in input file
       if (type == "pulsating_sphere")
-        meshMotionVec_[i][j].reset(new MeshPulsatingSphere(motion_def));
+        meshMotionVec_[i][j].reset(new MotionPulsatingSphere(motion_def));
       else if (type == "rotation")
-        meshMotionVec_[i][j].reset(new MeshRotation(motion_def));
+        meshMotionVec_[i][j].reset(new MotionRotation(motion_def));
       else if (type == "scaling")
-        meshMotionVec_[i][j].reset(new MeshScaling(motion_def));
+        meshMotionVec_[i][j].reset(new MotionScaling(motion_def));
       else if (type == "translation")
-        meshMotionVec_[i][j].reset(new MeshTranslation(motion_def));
+        meshMotionVec_[i][j].reset(new MotionTranslation(motion_def));
       else
         throw std::runtime_error("MeshMotion: Invalid mesh motion type: " + type);
 

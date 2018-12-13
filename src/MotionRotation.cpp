@@ -1,17 +1,17 @@
 
-#include "MeshRotation.h"
+#include "MotionRotation.h"
 
 #include <cmath>
 
 namespace tioga_nalu {
 
-MeshRotation::MeshRotation(const YAML::Node& node)
+MotionRotation::MotionRotation(const YAML::Node& node)
   : MotionBase()
 {
   load(node);
 }
 
-void MeshRotation::load(const YAML::Node& node)
+void MotionRotation::load(const YAML::Node& node)
 {
   if(node["start_time"])
     start_time_ = node["start_time"].as<double>();
@@ -42,7 +42,7 @@ void MeshRotation::load(const YAML::Node& node)
   assert(origin_.size() == threeD_vec_size);
 }
 
-void MeshRotation::build_transformation(const double time)
+void MotionRotation::build_transformation(const double time)
 {
   if( (time >= (start_time_-eps_)) && (time <= (end_time_+eps_)) )
   {
@@ -57,7 +57,7 @@ void MeshRotation::build_transformation(const double time)
   }
 }
 
-void MeshRotation::rotation_mat(const double angle)
+void MotionRotation::rotation_mat(const double angle)
 {
   reset_mat(trans_mat_);
 
@@ -111,7 +111,7 @@ void MeshRotation::rotation_mat(const double angle)
   trans_mat_ = add_motion(curr_trans_mat_,trans_mat_);
 }
 
-MotionBase::threeD_vec_type MeshRotation::compute_velocity(
+MotionBase::threeD_vec_type MotionRotation::compute_velocity(
   double time,
   const trans_mat_type& comp_trans,
   double* xyz )

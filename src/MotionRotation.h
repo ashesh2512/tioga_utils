@@ -1,16 +1,16 @@
-#ifndef MESHSCALING_H
-#define MESHSCALING_H
+#ifndef MOTIONROTATION_H
+#define MOTIONROTATION_H
 
 #include "MotionBase.h"
 
 namespace tioga_nalu {
 
-class MeshScaling : public MotionBase
+class MotionRotation : public MotionBase
 {
 public:
-  MeshScaling(const YAML::Node&);
+  MotionRotation(const YAML::Node&);
 
-  virtual ~MeshScaling() {}
+  virtual ~MotionRotation() {}
 
   virtual void build_transformation(const double);
 
@@ -27,21 +27,23 @@ public:
     double* xyz );
 
 private:
-  MeshScaling() = delete;
-  MeshScaling(const MeshScaling&) = delete;
+  MotionRotation() = delete;
+  MotionRotation(const MotionRotation&) = delete;
 
   void load(const YAML::Node&);
 
-  void scaling_mat(const threeD_vec_type&);
+  void rotation_mat(const double);
 
-  threeD_vec_type factor_;
-  threeD_vec_type velocity_;
   threeD_vec_type origin_;
+  threeD_vec_type axis_;
 
-  bool use_velocity_;
+  double omega_{0.0};
+  double angle_{0.0};
+
+  bool use_omega_;
 };
 
 
 } // tioga_nalu
 
-#endif /* MESHSCALING_H */
+#endif /* MOTIONROTATION_H */

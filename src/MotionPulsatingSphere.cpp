@@ -1,17 +1,17 @@
 
-#include "MeshPulsatingSphere.h"
+#include "MotionPulsatingSphere.h"
 
 #include <cmath>
 
 namespace tioga_nalu {
 
-MeshPulsatingSphere::MeshPulsatingSphere(const YAML::Node& node)
+MotionPulsatingSphere::MotionPulsatingSphere(const YAML::Node& node)
   : MotionBase()
 {
   load(node);
 }
 
-void MeshPulsatingSphere::load(const YAML::Node& node)
+void MotionPulsatingSphere::load(const YAML::Node& node)
 {
   if(node["start_time"])
     start_time_ = node["start_time"].as<double>();
@@ -32,7 +32,7 @@ void MeshPulsatingSphere::load(const YAML::Node& node)
   assert(origin_.size() == threeD_vec_size);
 }
 
-void MeshPulsatingSphere::build_transformation(const double time)
+void MotionPulsatingSphere::build_transformation(const double time)
 {
   assert(!move_once_);
 
@@ -40,7 +40,7 @@ void MeshPulsatingSphere::build_transformation(const double time)
     scaling_mat(time);
 }
 
-void MeshPulsatingSphere::scaling_mat(const double time)
+void MotionPulsatingSphere::scaling_mat(const double time)
 {
   reset_mat(trans_mat_);
 
@@ -74,7 +74,7 @@ void MeshPulsatingSphere::scaling_mat(const double time)
   trans_mat_ = add_motion(curr_trans_mat_,trans_mat_);
 }
 
-MotionBase::threeD_vec_type MeshPulsatingSphere::compute_velocity(
+MotionBase::threeD_vec_type MotionPulsatingSphere::compute_velocity(
   double time,
   const trans_mat_type& comp_trans,
   double* xyz )

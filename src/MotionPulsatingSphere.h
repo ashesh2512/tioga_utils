@@ -1,16 +1,16 @@
-#ifndef MESHPULSATINGSPHERE_H
-#define MESHPULSATINGSPHERE_H
+#ifndef MOTIONPULSATINGSPHERE_H
+#define MOTIONPULSATINGSPHERE_H
 
 #include "MotionBase.h"
 
 namespace tioga_nalu {
 
-class MeshPulsatingSphere : public MotionBase
+class MotionPulsatingSphere : public MotionBase
 {
 public:
-  MeshPulsatingSphere(const YAML::Node&);
+  MotionPulsatingSphere(const YAML::Node&);
 
-  virtual ~MeshPulsatingSphere() {}
+  virtual ~MotionPulsatingSphere() {}
 
   virtual void build_transformation(const double);
 
@@ -27,8 +27,8 @@ public:
     double* xyz );
 
 private:
-  MeshPulsatingSphere() = delete;
-  MeshPulsatingSphere(const MeshPulsatingSphere&) = delete;
+  MotionPulsatingSphere() = delete;
+  MotionPulsatingSphere(const MotionPulsatingSphere&) = delete;
 
   void load(const YAML::Node&);
 
@@ -43,4 +43,4 @@ private:
 
 } // tioga_nalu
 
-#endif /* MESHPULSATINGSPHERE_H */
+#endif /* MOTIONPULSATINGSPHERE_H */

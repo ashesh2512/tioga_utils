@@ -1,17 +1,17 @@
 
-#include "MeshTranslation.h"
+#include "MotionTranslation.h"
 
 #include <cmath>
 
 namespace tioga_nalu {
 
-MeshTranslation::MeshTranslation(const YAML::Node& node)
+MotionTranslation::MotionTranslation(const YAML::Node& node)
   : MotionBase()
 {
   load(node);
 }
 
-void MeshTranslation::load(const YAML::Node& node)
+void MotionTranslation::load(const YAML::Node& node)
 {
   if(node["start_time"])
     start_time_ = node["start_time"].as<double>();
@@ -36,7 +36,7 @@ void MeshTranslation::load(const YAML::Node& node)
   assert(velocity_.size() + displacement_.size() == 3);
 }
 
-void MeshTranslation::build_transformation(const double time)
+void MotionTranslation::build_transformation(const double time)
 {
   if( (time >= (start_time_-eps_)) && (time <= (end_time_+eps_)) )
   {
@@ -54,7 +54,7 @@ void MeshTranslation::build_transformation(const double time)
   }
 }
 
-void MeshTranslation::translation_mat(const threeD_vec_type& curr_disp)
+void MotionTranslation::translation_mat(const threeD_vec_type& curr_disp)
 {
   reset_mat(trans_mat_);
 
@@ -64,7 +64,7 @@ void MeshTranslation::translation_mat(const threeD_vec_type& curr_disp)
   trans_mat_[2][3] = curr_disp[2];
 }
 
-MotionBase::threeD_vec_type MeshTranslation::compute_velocity(
+MotionBase::threeD_vec_type MotionTranslation::compute_velocity(
   double time,
   const trans_mat_type& comp_trans,
   double* xyz )

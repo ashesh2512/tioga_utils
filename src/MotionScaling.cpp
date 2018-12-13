@@ -1,17 +1,17 @@
 
-#include "MeshScaling.h"
+#include "MotionScaling.h"
 
 #include <cmath>
 
 namespace tioga_nalu {
 
-MeshScaling::MeshScaling(const YAML::Node& node)
+MotionScaling::MotionScaling(const YAML::Node& node)
   : MotionBase()
 {
   load(node);
 }
 
-void MeshScaling::load(const YAML::Node& node)
+void MotionScaling::load(const YAML::Node& node)
 {
   if(node["start_time"])
     start_time_ = node["start_time"].as<double>();
@@ -39,7 +39,7 @@ void MeshScaling::load(const YAML::Node& node)
   assert(origin_.size() == threeD_vec_size);
 }
 
-void MeshScaling::build_transformation(const double time)
+void MotionScaling::build_transformation(const double time)
 {
   if( (time >= (start_time_-eps_)) && (time <= (end_time_+eps_)) )
   {
@@ -55,7 +55,7 @@ void MeshScaling::build_transformation(const double time)
   }
 }
 
-void MeshScaling::scaling_mat(const threeD_vec_type& factor)
+void MotionScaling::scaling_mat(const threeD_vec_type& factor)
 {
   reset_mat(trans_mat_);
 
@@ -85,7 +85,7 @@ void MeshScaling::scaling_mat(const threeD_vec_type& factor)
   trans_mat_ = add_motion(curr_trans_mat_,trans_mat_);
 }
 
-MotionBase::threeD_vec_type MeshScaling::compute_velocity(
+MotionBase::threeD_vec_type MotionScaling::compute_velocity(
   double time,
   const trans_mat_type& comp_trans,
   double* xyz )

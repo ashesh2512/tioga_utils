@@ -1,16 +1,16 @@
-#ifndef MESHTRANSLATION_H
-#define MESHTRANSLATION_H
+#ifndef MOTIONTRANSLATION_H
+#define MOTIONTRANSLATION_H
 
 #include "MotionBase.h"
 
 namespace tioga_nalu {
 
-class MeshTranslation : public MotionBase
+class MotionTranslation : public MotionBase
 {
 public:
-  MeshTranslation(const YAML::Node&);
+  MotionTranslation(const YAML::Node&);
 
-  virtual ~MeshTranslation() {}
+  virtual ~MotionTranslation() {}
 
   virtual void build_transformation(const double);
 
@@ -27,8 +27,8 @@ public:
     double* xyz );
 
 private:
-  MeshTranslation() = delete;
-  MeshTranslation(const MeshTranslation&) = delete;
+  MotionTranslation() = delete;
+  MotionTranslation(const MotionTranslation&) = delete;
 
   void load(const YAML::Node&);
 
@@ -43,4 +43,4 @@ private:
 
 } // tioga_nalu
 
-#endif /* MESHTRANSLATION_H */
+#endif /* MOTIONTRANSLATION_H */
