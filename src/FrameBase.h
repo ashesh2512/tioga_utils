@@ -35,7 +35,8 @@ public:
   void set_ref_frame( MotionBase::trans_mat_type& frame ) {
     ref_frame_ = frame; }
 
-  const bool isInertial_;
+  const bool is_inertial() const {
+    return isInertial_; }
 
 protected:
   //! Reference to the STK Mesh MetaData object
@@ -68,6 +69,8 @@ protected:
    * It is initialized to an identity matrix
    */
   MotionBase::trans_mat_type ref_frame_ = MotionBase::identity_mat_;
+
+  const bool isInertial_;
 
 private:
     FrameBase() = delete;

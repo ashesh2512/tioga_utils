@@ -12,7 +12,7 @@ public:
 
   virtual ~MotionRotation() {}
 
-  virtual void build_transformation(const double, const double* = NULL);
+  virtual void build_transformation(const double, const double* = nullptr);
 
   /** Function to compute motion-specific velocity
    *

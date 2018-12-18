@@ -102,8 +102,8 @@ void MeshMotion::initialize()
       frameVec_[i]->set_ref_frame(ref_frame);
     }
 
-    if( ( frameVec_[i]->isInertial_ ) ||
-        (!frameVec_[i]->isInertial_ && currentTime_ > 0.0) )
+    // update coordinates only if frame is inertial or time > 0.0
+    if( (frameVec_[i]->is_inertial()) || (currentTime_ > 0.0) )
       frameVec_[i]->update_coordinates_velocity(currentTime_);
   }
 }
@@ -137,7 +137,7 @@ void MeshMotion::execute(const int istep)
   currentTime_ = curr_time;
 
   for (int i=0; i < frameVec_.size(); i++)
-    if( !frameVec_[i]->isInertial_ )
+    if( !frameVec_[i]->is_inertial() )
       frameVec_[i]->update_coordinates_velocity(currentTime_);
 }
 
