@@ -33,6 +33,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Trilinos_CXX_COMPILER_FLAGS}")
 
 add_executable(stk2tioga
 
+  FrameBase.cpp
+  FrameInertial.cpp
+  FrameNonInertial.cpp
+  
   Timer.cpp
 
   TiogaBlock.cpp

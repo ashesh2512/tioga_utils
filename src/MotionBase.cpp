@@ -3,6 +3,12 @@
 
 namespace tioga_nalu {
 
+const MotionBase::trans_mat_type MotionBase::identity_mat_
+  = {{{1,0,0,0},
+      {0,1,0,0},
+      {0,0,1,0},
+      {0,0,0,1}}};
+
 MotionBase::trans_mat_type MotionBase::add_motion(
     const trans_mat_type& motionL,
     const trans_mat_type& motionR)

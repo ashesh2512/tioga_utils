@@ -25,28 +25,31 @@ void MotionPulsatingSphere::load(const YAML::Node& node)
   if(node["frequency"])
     frequency_ = node["frequency"].as<double>();
 
-  radius_ = node["radius"].as<double>();
-  assert(radius_ > 0.0);
-
   origin_ = node["origin"].as<threeD_vec_type>();
   assert(origin_.size() == threeD_vec_size);
 }
 
-void MotionPulsatingSphere::build_transformation(const double time)
+void MotionPulsatingSphere::build_transformation(
+  const double time,
+  const double* xyz)
 {
-  assert(!move_once_);
-
   if( (time >= (start_time_-eps_)) && (time <= (end_time_+eps_)) )
-    scaling_mat(time);
+    scaling_mat(time,xyz);
 }
 
-void MotionPulsatingSphere::scaling_mat(const double time)
+void MotionPulsatingSphere::scaling_mat(
+  const double time,
+  const double* xyz)
 {
   reset_mat(trans_mat_);
 
-  double curr_radius = radius_ + amplitude_*(1 - std::cos(2*M_PI*frequency_*time));
+  double radius = std::sqrt( std::pow(xyz[0]-origin_[0],2)
+                            +std::pow(xyz[1]-origin_[1],2)
+                            +std::pow(xyz[2]-origin_[2],2));
 
-  double uniform_scaling = curr_radius/radius_;
+  double curr_radius = radius + amplitude_*(1 - std::cos(2*M_PI*frequency_*time));
+
+  double uniform_scaling = curr_radius/radius;
 
   // Build matrix for translating object to cartesian origin
   trans_mat_[0][3] = -origin_[0];
@@ -79,19 +82,21 @@ MotionBase::threeD_vec_type MotionPulsatingSphere::compute_velocity(
   const trans_mat_type& comp_trans,
   double* xyz )
 {
-  assert(!move_once_);
-
   threeD_vec_type vel = {};
 
   if( (time >= (start_time_-eps_)) && (time <= (end_time_+eps_)) )
   {
+    double radius = std::sqrt( std::pow(xyz[0]-origin_[0],2)
+                              +std::pow(xyz[1]-origin_[1],2)
+                              +std::pow(xyz[2]-origin_[2],2));
+
     double pulsating_velocity =
-        amplitude_ * std::sin(2*M_PI*frequency_*time) * 2*M_PI*frequency_ / radius_;
+      amplitude_ * std::sin(2*M_PI*frequency_*time) * 2*M_PI*frequency_ / radius;
 
     for (int d=0; d < threeD_vec_size; d++)
     {
       int signum = (-eps_ < xyz[d]-origin_[d]) - (xyz[d]-origin_[d] < eps_);
-      vel[d] = signum * pulsating_velocity * xyz[d];
+      vel[d] = signum * pulsating_velocity * (xyz[d]-origin_[d]);
     }
   }
 

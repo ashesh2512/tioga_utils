@@ -12,7 +12,7 @@ public:
 
   virtual ~MotionScaling() {}
 
-  virtual void build_transformation(const double);
+  virtual void build_transformation(const double, const double* = NULL);
 
   /** Function to compute motion-specific velocity
    *

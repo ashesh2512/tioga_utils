@@ -12,7 +12,7 @@ public:
 
   virtual ~MotionPulsatingSphere() {}
 
-  virtual void build_transformation(const double);
+  virtual void build_transformation(const double, const double*);
 
   /** Function to compute motion-specific velocity
    *
@@ -32,9 +32,8 @@ private:
 
   void load(const YAML::Node&);
 
-  void scaling_mat(const double);
+  void scaling_mat(const double, const double*);
 
-  double radius_;
   double amplitude_{1.0};
   double frequency_{1.0};
 

@@ -1,13 +1,8 @@
 
 #include "MeshMotion.h"
-#include "MotionPulsatingSphere.h"
-#include "MotionRotation.h"
-#include "MotionScaling.h"
-#include "MotionTranslation.h"
 
-// stk_mesh/base/fem
-#include <stk_mesh/base/Field.hpp>
-#include <stk_mesh/base/FieldBLAS.hpp>
+#include "FrameInertial.h"
+#include "FrameNonInertial.h"
 
 #include <cassert>
 
@@ -28,51 +23,40 @@ MeshMotion::MeshMotion(
 
 void MeshMotion::load(const YAML::Node& node)
 {
+  // get motion information for entire mesh
   const auto& minfo = node["motion_group"];
-
   const int num_groups = minfo.size();
-  meshMotionVec_.resize(num_groups);
-  partNamesVec_.resize(num_groups);
+  frameVec_.resize(num_groups);
+
+  // temporary vector to store frame names
+  std::vector<std::string> frameNames(num_groups);
 
   for (int i=0; i < num_groups; i++) {
 
     // extract current motion group info
     const auto& ginfo = minfo[i];
 
-    // extract the motions in the current group
-    const auto& motions = ginfo["motion"];
+    // get name of motion group
+    frameNames[i] = ginfo["name"].as<std::string>();
 
-    const int num_motions = motions.size();
-    meshMotionVec_[i].resize(num_motions);
+    // get frame definition of motion group
+    std::string frame = ginfo["frame"].as<std::string>();
 
-    // create the classes associated with every motion in current group
-    for (int j=0; j < num_motions; j++) {
+    if( frame == "inertial" )
+      frameVec_[i].reset(new FrameInertial(meta_, bulk_, ginfo));
+    else if( frame == "non_inertial" )
+      frameVec_[i].reset(new FrameNonInertial(meta_, bulk_, ginfo));
+    else
+      throw std::runtime_error("MeshMotion: Invalid frame type: " + frame);
 
-      // get the motion definition for j-th transformation
-      const auto& motion_def = motions[j];
-
-      // motion type should always be defined by the user
-      std::string type = motion_def["type"].as<std::string>();
-
-      // determine type of mesh motion based on user definition in input file
-      if (type == "pulsating_sphere")
-        meshMotionVec_[i][j].reset(new MotionPulsatingSphere(motion_def));
-      else if (type == "rotation")
-        meshMotionVec_[i][j].reset(new MotionRotation(motion_def));
-      else if (type == "scaling")
-        meshMotionVec_[i][j].reset(new MotionScaling(motion_def));
-      else if (type == "translation")
-        meshMotionVec_[i][j].reset(new MotionTranslation(motion_def));
-      else
-        throw std::runtime_error("MeshMotion: Invalid mesh motion type: " + type);
-
-    } // end for loop - j index
-
-    // get part names associated with current motion group
-    const auto& fparts = ginfo["mesh_parts"];
-    partNamesVec_[i] = fparts.as<std::vector<std::string>>();
-
-  } // end for loop - i index
+    // get the reference frame if it exists
+    if(ginfo["reference"])
+    {
+      std::string refFrameName = ginfo["reference"].as<std::string>();
+      auto it = std::find(frameNames.begin(), frameNames.end(), refFrameName);
+      refFrameMap_[i] = std::distance(frameNames.begin(), it);
+    }
+  }
 
   if (node["start_time"])
     startTime_ = node["start_time"].as<double>();
@@ -97,28 +81,9 @@ void MeshMotion::setup()
   stk::mesh::put_field(mesh_displacement, meta_.universal_part());
   stk::mesh::put_field(mesh_velocity, meta_.universal_part());
 
-  const int num_groups = partNamesVec_.size();
-  partVec_.resize(num_groups);
-
-  for (int i=0; i < num_groups; i++) {
-
-    for (auto pName: partNamesVec_[i]) {
-      stk::mesh::Part* part = meta_.get_part(pName);
-      if (nullptr == part)
-        throw std::runtime_error(
-          "MeshMotion: Invalid part name encountered: " + pName);
-      else
-        partVec_[i].push_back(part);
-    } // end for loop - partNamesVec_
-
-    for (auto* p: partVec_[i]) {
-      stk::mesh::put_field(coordinates, *p);
-      stk::mesh::put_field(current_coordinates, *p);
-      stk::mesh::put_field(mesh_displacement, *p);
-      stk::mesh::put_field(mesh_velocity, *p);
-    } // end for loop - partVec_
-
-  } // end for loop - i index
+  // setup the discretization for all motion frames
+  for (auto& frame: frameVec_)
+    frame->setup();
 }
 
 void MeshMotion::initialize()
@@ -127,72 +92,20 @@ void MeshMotion::initialize()
 
   init_coordinates();
 
-  const int num_groups = meshMotionVec_.size();
-  for (int i=0; i < num_groups; i++)
+  for (int i=0; i < frameVec_.size(); i++)
   {
-    // compute composite transformation matrix
-    MotionBase::trans_mat_type comp_trans_mat = meshMotionVec_[0][0]->identity_mat_;
-
-    for (auto& mm: meshMotionVec_[i])
+    // set reference frame if they exist
+    if( refFrameMap_.find(i) != refFrameMap_.end() )
     {
-      // perform initial motions that have been flagged so
-      // also perform transient motions if t > 0.0
-      if( currentTime_ > 0.0 || mm->move_once_ )
-      {
-        // build and get transformation matrix
-        mm->build_transformation(currentTime_);
-
-        // composite addition of motions in current group
-        comp_trans_mat = mm->add_motion(mm->get_trans_mat(),comp_trans_mat);
-      }
+      int ref_ind = refFrameMap_[i];
+      MotionBase::trans_mat_type ref_frame = frameVec_[ref_ind]->get_inertial_frame();
+      frameVec_[i]->set_ref_frame(ref_frame);
     }
 
-    // compute velocity resulting of motions in current group
-    if( currentTime_ > 0.0 )
-    {
-      // reset velocity field
-      VectorFieldType* mesh_velocity = meta_.get_field<VectorFieldType>(
-        stk::topology::NODE_RANK, "mesh_velocity");
-      stk::mesh::field_fill(0.0, *mesh_velocity, stk::mesh::selectUnion(partVec_[i]));
-
-      // update coordinates or set mesh velocity only if composite motion is not identity
-      if( comp_trans_mat != meshMotionVec_[0][0]->identity_mat_ )
-        update_coordinates_velocity(i, comp_trans_mat);
-    }
-
-  } // end loop - i index
-}
-
-void MeshMotion::execute(const int istep)
-{
-  const double curr_time = startTime_ + (istep + 1) * deltaT_;
-  currentTime_ = curr_time;
-
-  const int num_groups = meshMotionVec_.size();
-  for (int i=0; i < num_groups; i++)
-  {
-    // compute composite transformation matrix
-    MotionBase::trans_mat_type comp_trans_mat = meshMotionVec_[0][0]->identity_mat_;
-
-    for (auto& mm: meshMotionVec_[i])
-    {
-        // build and get transformation matrix
-        mm->build_transformation(currentTime_);
-
-        // composite addition of motions in current group
-        comp_trans_mat = mm->add_motion(mm->get_trans_mat(),comp_trans_mat);
-    }
-
-    // reset velocity field
-    VectorFieldType* mesh_velocity = meta_.get_field<VectorFieldType>(
-      stk::topology::NODE_RANK, "mesh_velocity");
-    stk::mesh::field_fill(0.0, *mesh_velocity, stk::mesh::selectUnion(partVec_[i]));
-
-    // update coordinates or set mesh velocity only if composite motion is not identity
-    if( comp_trans_mat != meshMotionVec_[0][0]->identity_mat_ )
-      update_coordinates_velocity(i, comp_trans_mat);
-
-  } // end loop - i index
+    if( ( frameVec_[i]->isInertial_ ) ||
+        (!frameVec_[i]->isInertial_ && currentTime_ > 0.0) )
+      frameVec_[i]->update_coordinates_velocity(currentTime_);
+  }
 }
 
 void MeshMotion::init_coordinates()
@@ -218,59 +131,14 @@ void MeshMotion::init_coordinates()
   }
 }
 
-void MeshMotion::update_coordinates_velocity(
-  const int gid,
-  MotionBase::trans_mat_type trans_mat )
+void MeshMotion::execute(const int istep)
 {
-  const int ndim = meta_.spatial_dimension();
+  const double curr_time = startTime_ + (istep + 1) * deltaT_;
+  currentTime_ = curr_time;
 
-  VectorFieldType* modelCoords = meta_.get_field<VectorFieldType>(
-    stk::topology::NODE_RANK, "coordinates");
-  VectorFieldType* currCoords = meta_.get_field<VectorFieldType>(
-    stk::topology::NODE_RANK, "current_coordinates");
-  VectorFieldType* displacement = meta_.get_field<VectorFieldType>(
-    stk::topology::NODE_RANK, "mesh_displacement");
-  VectorFieldType* meshVelocity = meta_.get_field<VectorFieldType>(
-    stk::topology::NODE_RANK, "mesh_velocity");
-
-  stk::mesh::Selector sel = stk::mesh::selectUnion(partVec_[gid]);
-  const auto& bkts = bulk_.get_buckets(stk::topology::NODE_RANK, sel);
-
-  for (auto b: bkts) {
-    for (size_t in=0; in < b->size(); in++) {
-
-      auto node = (*b)[in]; // mesh node and NOT YAML node
-      double* oldxyz = stk::mesh::field_data(*modelCoords, node);
-      double* xyz = stk::mesh::field_data(*currCoords, node);
-      double* dx = stk::mesh::field_data(*displacement, node);
-      double* velxyz = stk::mesh::field_data(*meshVelocity, node);
-
-      // perform matrix multiplication between transformation matrix
-      // and old coordinates to obtain current coordinates
-      for (int d = 0; d < ndim; d++) {
-        xyz[d] = trans_mat[d][0]*oldxyz[0]
-                +trans_mat[d][1]*oldxyz[1]
-                +trans_mat[d][2]*oldxyz[2]
-                +trans_mat[d][3];
-
-        dx[d] = xyz[d] - oldxyz[d];
-      } // end for loop - d index
-
-      // compute velocity vector on current node resulting from all
-      // motions in current motion group
-      for (auto& mm: meshMotionVec_[gid])
-      {
-        if( !mm->move_once_ )
-        {
-          MotionBase::threeD_vec_type mm_vel = mm->compute_velocity(currentTime_,trans_mat,xyz);
-
-          for (int d = 0; d < ndim; d++)
-            velxyz[d] += mm_vel[d];
-        }
-      } // end for loop - mm
-
-    } // end for loop - in index
-  } // end for loop - bkts
+  for (int i=0; i < frameVec_.size(); i++)
+    if( !frameVec_[i]->isInertial_ )
+      frameVec_[i]->update_coordinates_velocity(currentTime_);
 }
 
 } // tioga_nalu

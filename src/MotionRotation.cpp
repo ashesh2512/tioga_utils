@@ -19,9 +19,6 @@ void MotionRotation::load(const YAML::Node& node)
   if(node["end_time"])
     end_time_ = node["end_time"].as<double>();
 
-  if (node["move_once"])
-    move_once_ = node["move_once"].as<bool>();
-
   // rotation could be based on angular velocity or angle
   if(node["omega"]){
     use_omega_ = true;
@@ -42,7 +39,9 @@ void MotionRotation::load(const YAML::Node& node)
   assert(origin_.size() == threeD_vec_size);
 }
 
-void MotionRotation::build_transformation(const double time)
+void MotionRotation::build_transformation(
+  const double time,
+  const double* xyz)
 {
   if( (time >= (start_time_-eps_)) && (time <= (end_time_+eps_)) )
   {
@@ -116,8 +115,6 @@ MotionBase::threeD_vec_type MotionRotation::compute_velocity(
   const trans_mat_type& comp_trans,
   double* xyz )
 {
-  assert(!move_once_ && (omega_>0.0));
-
   threeD_vec_type vel = {};
 
   if( (time >= (start_time_-eps_)) && (time <= (end_time_+eps_)) )

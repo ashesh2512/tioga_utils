@@ -1,20 +1,9 @@
 #ifndef MESHMOTION_H
 #define MESHMOTION_H
 
-#include "MotionBase.h"
-
-#include "stk_mesh/base/BulkData.hpp"
-#include "stk_mesh/base/CoordinateSystems.hpp"
-#include "stk_mesh/base/Field.hpp"
-
-#include "yaml-cpp/yaml.h"
-
-#include <memory>
+#include "FrameBase.h"
 
 namespace tioga_nalu {
-
-typedef stk::mesh::Field<double, stk::mesh::Cartesian> VectorFieldType;
-typedef stk::mesh::Field<double> ScalarFieldType;
 
 class MeshMotion
 {
@@ -26,11 +15,11 @@ public:
 
   ~MeshMotion() {}
 
-  virtual void setup();
+  void setup();
 
-  virtual void initialize();
+  void initialize();
 
-  virtual void execute(const int);
+  void execute(const int);
 
   int num_steps() { return numSteps_; }
 
@@ -45,42 +34,29 @@ private:
   void init_coordinates();
 
   /**
-   *  @param[in] gid       Motion group id
-   *  @param[in] trans_mat Transformation matrix
-   */
-  void update_coordinates_velocity(
-    const int gid,
-    MotionBase::trans_mat_type trans_mat );
-
-  /**
-   *  @param[in] gid           Motion group id
+   *  @param[in] gid Motion group id
    */
   void set_mesh_velocity(const int gid);
 
+  //! Reference to the STK Mesh MetaData object
   stk::mesh::MetaData& meta_;
 
+  //! Reference to the STK Mesh BulkData object
   stk::mesh::BulkData& bulk_;
 
-  /** Motion vector
+  /** Motion frame vector
    *
-   *  A two-dimensional list of size number of motion groups
-   *  Each entry in the outer list is size number of motions in that group
+   *  Vector of type of frame of corresponding motion
+   *  Size is the number of motion groups in input file
    */
-  std::vector<std::vector<std::unique_ptr<MotionBase>>> meshMotionVec_;
+  std::vector<std::unique_ptr<FrameBase>> frameVec_;
 
-  /** Motion part names
+  /** Reference frame map
    *
-   *  A two-dimensional list of size number of motion groups
-   *  Each entry in the outer list is size number of parts in that group
+   *  Map between frame indices and corresponding reference frame indices
+   *  Size is the number of motion groups with reference frames
    */
-  std::vector<std::vector<std::string>> partNamesVec_;
-
-  /** Motion parts
-   *
-   *  A two-dimensional list of size number of motion groups
-   *  Each entry in the outer list is size number of parts in that group
-   */
-  std::vector<stk::mesh::PartVector> partVec_;
+  std::map<int, int> refFrameMap_;
 
   double startTime_{0.0};
   double deltaT_{0.0};

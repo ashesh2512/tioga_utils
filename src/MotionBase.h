@@ -1,12 +1,10 @@
 #ifndef MOTIONBASE_H
 #define MOTIONBASE_H
 
-#include "stk_mesh/base/MetaData.hpp"
-
 #include "yaml-cpp/yaml.h"
 
 #include <cassert>
-#include <float.h>
+#include <cfloat>
 
 namespace tioga_nalu {
 
@@ -25,7 +23,7 @@ public:
 
   virtual ~MotionBase() {}
 
-  virtual void build_transformation(double) = 0;
+  virtual void build_transformation(const double, const double* = NULL) = 0;
 
   /** Function to compute motion-specific velocity
    *
@@ -52,11 +50,7 @@ public:
   const trans_mat_type& get_trans_mat() const {
     return trans_mat_; }
 
-  const trans_mat_type identity_mat_ = {{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}};
-
-  //! boolean for one-time mesh motion
-  //! if start_time_ not set, this happens at start of simulation
-  bool move_once_{false};
+  static const trans_mat_type identity_mat_;
 
 protected:
   void reset_mat(trans_mat_type& mat) {
