@@ -64,7 +64,7 @@ void FrameInertial::update_coordinates_velocity(const double time)
 
 void FrameInertial::compute_transformation(const double time)
 {
-  inertialFrame_ = refFrame_;
+  inertial_frame_ = ref_frame_;
 
   for (auto& mm: meshMotionVec_)
   {
