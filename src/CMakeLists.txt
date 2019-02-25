@@ -15,7 +15,7 @@ find_path(YAML_INCLUDES yaml.h PATHS ${YAML_DIR}/include/yaml-cpp)
 set(CMAKE_PREFIX_PATH ${TIOGA_DIR} ${CMAKE_PREFIX_PATH})
 find_package(TIOGA REQUIRED)
 
-find_library(NALU_LIBRARIES NAMES libnalu.a PATHS ${NALU_DIR}/lib ${NALU_DIR}/build)
+find_library(NALU_LIBRARIES NAMES nalu libnalu.a PATHS ${NALU_DIR}/lib ${NALU_DIR}/build)
 find_path(NALU_INCLUDES Realm.h PATHS ${NALU_DIR}/include)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -30,6 +30,11 @@ include_directories(${CMAKE_SOURCE_DIR})
 
 set(CMAKE_CXX_COMPILER ${Trilinos_CXX_COMPILER})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Trilinos_CXX_COMPILER_FLAGS}")
+
+# Fix flags for Intel C++ compiler
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict ")
+endif()
 
 add_executable(stk2tioga
 

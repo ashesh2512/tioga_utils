@@ -15,7 +15,9 @@
 #include <memory>
 #include <array>
 
-class tioga;
+namespace TIOGA {
+    class tioga;
+}
 
 namespace tioga_nalu {
 
@@ -75,7 +77,7 @@ public:
   void check_soln_norm();
 
   /** Return the TIOGA interface object */
-  tioga& tioga_iface()
+  TIOGA::tioga& tioga_iface()
   { return *tg_; }
 
 private:
@@ -87,31 +89,27 @@ private:
    */
   void load(const YAML::Node&);
 
-  /** STK Custom Ghosting to transfer donor elements to receptor's MPI rank
-   *
-   *  This method declares the STK custom ghosting object, actual updates are
-   *  performed by the update_ghosting method.
-   */
-  void initialize_ghosting();
-
   /** Ghost donor elements to receptor MPI ranks
    */
   void update_ghosting();
-
-  /** Populate the {fringe node, donor element} pair data structure
-   */
-  void update_fringe_info();
-
-  /** Update the inactive part with hole elements
-   */
-  void populate_inactive_part();
 
   /** Reset all connectivity data structures when recomputing connectivity
    */
   void reset_data_structures();
 
+  /** Determine (receptor, donor) pairs on the MPI rank containing receptors.
+   *
+   *  Populates the list of donor elements for each receptor on this MPI rank.
+   *  Creation of the actual data structures is done in populate_overset_info.
+   *  The method is also responsible for determining fringe/field mismatches for
+   *  the shared nodes across processor interfaces. The logic used is to signal
+   *  all procs sharing the node to take on a fringe status (iblank = -1) if one
+   *  of them has status of fringe while others have a status of field point.
+   */
   void get_receptor_info();
 
+  /** Populate the datastructures used to perform overset connectivity in Nalu
+   */
   void populate_overset_info();
 
   //! Reference to the STK MetaData object
@@ -125,7 +123,7 @@ private:
   std::vector<std::unique_ptr<TiogaBlock>> blocks_;
 
   //! Reference to the TIOGA API interface
-  std::unique_ptr<tioga> tg_;
+  std::unique_ptr<TIOGA::tioga> tg_;
 
   //! Pointer to STK Custom Ghosting object
   stk::mesh::Ghosting* ovsetGhosting_;
@@ -137,29 +135,27 @@ private:
   //! Fringe {receptor, donor} information
   std::vector<std::unique_ptr<OversetInfo>> ovsetInfo_;
 
-  //! Name of part holding hole elements
-  std::string inactivePartName_;
-
-  //! STK Part holding hole elements from overset connectivity
-  stk::mesh::Part* inactivePart_;
-
-  //! List of hole elements
-  std::vector<stk::mesh::Entity> holeElems_;
-
   //! List of receptor nodes that are shared entities across MPI ranks. This
   //! information is used to synchronize the field vs. fringe point status for
   //! these shared nodes across processor boundaries.
   std::vector<stk::mesh::EntityId> receptorIDs_;
+
+  //! Set the symmetry direction for TIOGA, default is z-direction (3)
+  int symmetryDir_{3};
 
   //! Donor elements corresponding to TiogaSTKIface::receptorIDs_ that must be
   //! ghosted to another MPI rank to ensure that owned and shared nodes are
   //! consistent.
   std::vector<stk::mesh::EntityId> donorIDs_;
 
-  std::string coordsName_;
+  //! Ghosting exchange information
+  std::vector<int> ghostCommProcs_;
 
-  //! Set the symmetry direction for TIOGA, default is z-direction (3)
-  int symmetryDir_{3};
+  //! Name of the coordinate field sent to TIOGA for OGA
+  //!
+  //! For static meshes this is coordinates, for moving meshes this is
+  //! "current_coordinates". Initialized when this instance is constructed.
+  std::string coordsName_;
 };
 
 

@@ -63,8 +63,8 @@ void TiogaBlock::setup()
     stk::topology::ELEM_RANK, "iblank_cell");
 
   for (auto p: blkParts_) {
-    stk::mesh::put_field(ibf, *p);
-    stk::mesh::put_field(ibcell, *p);
+    stk::mesh::put_field_on_mesh(ibf, *p, nullptr);
+    stk::mesh::put_field_on_mesh(ibcell, *p, nullptr);
   }
 }
 
@@ -82,7 +82,8 @@ void TiogaBlock::initialize()
 void TiogaBlock::update_coords()
 {
   auto timeMon = get_timer("TiogaBlock::update_coords");
-  stk::mesh::Selector mesh_selector = stk::mesh::selectUnion(blkParts_);
+  stk::mesh::Selector mesh_selector = stk::mesh::selectUnion(blkParts_)
+      & (meta_.locally_owned_part() | meta_.globally_shared_part());
   const stk::mesh::BucketVector& mbkts = bulk_.get_buckets(
     stk::topology::NODE_RANK, mesh_selector);
   VectorFieldType* coords = meta_.get_field<VectorFieldType>(
@@ -118,7 +119,8 @@ TiogaBlock::update_iblanks()
     meta_.get_field<ScalarFieldType>(stk::topology::NODE_RANK, "iblank");
   auto timeMon = get_timer("TiogaBlock::update_iblanks");
 
-  stk::mesh::Selector mesh_selector = stk::mesh::selectUnion(blkParts_);
+  stk::mesh::Selector mesh_selector = stk::mesh::selectUnion(blkParts_)
+      & (meta_.locally_owned_part() | meta_.globally_shared_part());
   const stk::mesh::BucketVector& mbkts =
     bulk_.get_buckets(stk::topology::NODE_RANK, mesh_selector);
 
@@ -153,7 +155,7 @@ void TiogaBlock::update_iblank_cell()
   }
 }
 
-void TiogaBlock::get_donor_info(tioga& tg, stk::mesh::EntityProcVec& egvec)
+void TiogaBlock::get_donor_info(TIOGA::tioga& tg, stk::mesh::EntityProcVec& egvec)
 {
   // Nothing to do if we haven't registered this mesh on this proc
   if (num_nodes_ < 1) return;
@@ -218,7 +220,8 @@ inline void TiogaBlock::names_to_parts(
 
 void TiogaBlock::process_nodes()
 {
-  stk::mesh::Selector mesh_selector = stk::mesh::selectUnion(blkParts_);
+  stk::mesh::Selector mesh_selector = stk::mesh::selectUnion(blkParts_)
+      & (meta_.locally_owned_part() | meta_.globally_shared_part());
   const stk::mesh::BucketVector& mbkts = bulk_.get_buckets(
     stk::topology::NODE_RANK, mesh_selector);
   VectorFieldType* coords = meta_.get_field<VectorFieldType>(
@@ -257,7 +260,8 @@ void TiogaBlock::process_nodes()
 
 void TiogaBlock::process_wallbc()
 {
-  stk::mesh::Selector mesh_selector = stk::mesh::selectUnion(wallParts_);
+  stk::mesh::Selector mesh_selector = stk::mesh::selectUnion(wallParts_)
+      & (meta_.locally_owned_part() | meta_.globally_shared_part());
   const stk::mesh::BucketVector& mbkts = bulk_.get_buckets(
     stk::topology::NODE_RANK, mesh_selector);
 
@@ -281,7 +285,8 @@ void TiogaBlock::process_wallbc()
 
 void TiogaBlock::process_ovsetbc()
 {
-  stk::mesh::Selector mesh_selector = stk::mesh::selectUnion(ovsetParts_);
+  stk::mesh::Selector mesh_selector = stk::mesh::selectUnion(ovsetParts_)
+      & (meta_.locally_owned_part() | meta_.globally_shared_part());
   const stk::mesh::BucketVector& mbkts = bulk_.get_buckets(
     stk::topology::NODE_RANK, mesh_selector);
 
@@ -380,7 +385,7 @@ void TiogaBlock::process_elements()
   }
 }
 
-void TiogaBlock::register_block(tioga& tg)
+void TiogaBlock::register_block(TIOGA::tioga& tg)
 {
   // Do nothing if this mesh block isn't present in this MPI Rank
   if (num_nodes_ < 1) return;
@@ -412,7 +417,7 @@ void TiogaBlock::register_block(tioga& tg)
   //tg.setResolutions(meshtag_, node_res_.data(), cell_res_.data());
 }
 
-void TiogaBlock::register_solution(tioga& tg)
+void TiogaBlock::register_solution(TIOGA::tioga& tg)
 {
   if (num_nodes_ < 1) return;
   auto timeMon = get_timer("TiogaBlock::register_solution");
