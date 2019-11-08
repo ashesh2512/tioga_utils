@@ -1,11 +1,16 @@
 
 #include "TiogaSTKIface.h"
 #include "Timer.h"
+
+#ifdef HAS_NALU_WIND
 #include "NaluEnv.h"
 
+#include "master_element/MasterElementFactory.h"
 #include "master_element/MasterElement.h"
 #include "master_element/Hex8CVFEM.h"
 #include "utils/StkHelpers.h"
+#endif
+
 #include "stk_util/parallel/ParallelReduce.hpp"
 #include "stk_mesh/base/FieldParallel.hpp"
 
@@ -136,6 +141,7 @@ void TiogaSTKIface::reset_data_structures()
 
 void TiogaSTKIface::update_ghosting()
 {
+#ifdef HAS_NALU_WIND
   std::vector<stk::mesh::EntityKey> recvGhostsToRemove;
 
   if (ovsetGhosting_ != nullptr) {
@@ -161,6 +167,7 @@ void TiogaSTKIface::update_ghosting()
 
     sierra::nalu::populate_ghost_comm_procs(bulk_, *ovsetGhosting_, ghostCommProcs_);
   }
+#endif
 }
 
 void TiogaSTKIface::check_soln_norm()
@@ -273,9 +280,9 @@ TiogaSTKIface::get_receptor_info()
   if (nTotalEntities < 1) return;
 
 #if 1
-  sierra::nalu::NaluEnv::self().naluOutputP0()
-    << "TIOGA: Detected fringe/field mismatch on " << (nTotalEntities/3)
-    << " entities" << std::endl;
+  if (iproc == 0)
+      std::cout << "TIOGA: Detected fringe/field mismatch on " << (nTotalEntities/3)
+                << " entities" << std::endl;
 #endif
 
   // Prepare data structures for reconciliation
@@ -316,6 +323,7 @@ TiogaSTKIface::get_receptor_info()
 void
 TiogaSTKIface::populate_overset_info()
 {
+#ifdef HAS_NALU_WIND
   int nDim = meta_.spatial_dimension();
   int iproc = bulk_.parallel_rank();
   int nproc = bulk_.parallel_size();
@@ -415,6 +423,7 @@ TiogaSTKIface::populate_overset_info()
 #endif
 
   if (outfile.is_open()) outfile.close();
+#endif
 }
 
 }  // tioga
